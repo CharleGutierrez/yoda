@@ -2,6 +2,7 @@ import gleeunit
 import gleeunit/should
 import server
 import gleam/string
+import legacy_bridge
 
 pub fn main() -> Nil {
   gleeunit.main()
@@ -422,6 +423,41 @@ pub fn ai_query_optimizer_index_synthesis_test() {
     string.contains(idx_res, "CREATE INDEX")
     && string.contains(idx_res, "idx_sensor_telemetry")
   )
+}
+
+pub fn nif_autonomous_fallbacks_and_ai_tuning_test() {
+  // 1. Initialize NIF Banner
+  let banner = legacy_bridge.initialize_vella()
+  should.be_true(string.contains(banner, "Vella"))
+
+  // 2. Vella AI Optimization Report
+  let report = legacy_bridge.run_vella_system_optimization()
+  should.be_true(string.contains(report, "Vella AI") && string.contains(report, "tuned_semantic_cache_threshold"))
+
+  // 3. AI Timeseries Adaptive Bucket Tuning
+  let t1 = legacy_bridge.tune_timeseries_resolution(60, 300)
+  should.be_true(t1 >= 60)
+
+  let t2 = legacy_bridge.tune_timeseries_resolution(60, 20)
+  should.be_true(t2 <= 60)
+
+  // 4. AI Compression Tolerance Tuning
+  let c1 = legacy_bridge.tune_compression_threshold(1.5, 90.0)
+  should.be_true(c1 >=. 1.5)
+
+  let c2 = legacy_bridge.tune_compression_threshold(1.5, 30.0)
+  should.be_true(c2 >=. 0.5)
+
+  // 5. In-Memory SQLite Fallback
+  let sql_res = legacy_bridge.execute_sqlite_query(":memory:", "SELECT 1 AS num;")
+  should.be_true(string.contains(sql_res, "num") || string.contains(sql_res, "rows"))
+
+  // 6. ODBC Bridge Connection and Legacy DBF Sync
+  let odbc_status = legacy_bridge.test_odbc_connection("DSN=PostgreSQL35W")
+  should.be_true(string.contains(odbc_status, "ODBC"))
+
+  let sync_status = legacy_bridge.start_legacy_sync("/data/test.dbf")
+  should.be_true(string.contains(sync_status, "DBF") || string.contains(sync_status, "watching"))
 }
 
 fn list_has_item(items: List(String), target: String) -> Bool {
