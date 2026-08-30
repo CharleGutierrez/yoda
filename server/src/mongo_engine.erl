@@ -66,7 +66,52 @@ ensure_table(Name, Type) ->
 %%  Command dispatcher — MongoDB shell syntax OR JSON envelope
 %% ============================================================
 execute_mongo(CommandBin) ->
-    db_manager:simulate_db(<<"MongoDB">>, CommandBin).
+    CmdStr = string:trim(if is_binary(CommandBin) -> binary_to_list(CommandBin); true -> CommandBin end),
+    case parse_mongo_command(CmdStr) of
+        {insert, Coll, Doc} ->
+            Id = insert_doc(Coll, Doc),
+            list_to_binary(io_lib:format("{\"insertedId\":\"~s\",\"acknowledged\":true}", [binary_to_list(Id)]));
+        {insert_many, Coll, Docs} ->
+            Ids = insert_many(Coll, Docs),
+            IdList = [ "\"" ++ binary_to_list(I) ++ "\"" || I <- Ids ],
+            list_to_binary(io_lib:format("{\"insertedIds\":[~s],\"acknowledged\":true}", [string:join(IdList, ",")]));
+        {find, Coll, Filter} ->
+            Docs = find_docs(Coll, Filter),
+            list_to_binary("[" ++ string:join(Docs, ",") ++ "]");
+        {find_one, Coll, Filter} ->
+            case find_one(Coll, Filter) of
+                null -> <<"null">>;
+                Doc -> list_to_binary(Doc)
+            end;
+        {count, Coll, Filter} ->
+            Count = count_docs(Coll, Filter),
+            list_to_binary(io_lib:format("{\"count\":~p}", [Count]));
+        {update, Coll, Filter, Update} ->
+            {Matched, Modified} = update_one(Coll, Filter, Update),
+            list_to_binary(io_lib:format("{\"matchedCount\":~p,\"modifiedCount\":~p,\"acknowledged\":true}", [Matched, Modified]));
+        {delete, Coll, Filter} ->
+            Deleted = delete_docs(Coll, Filter),
+            list_to_binary(io_lib:format("{\"deletedCount\":~p,\"acknowledged\":true}", [Deleted]));
+        {delete_one, Coll, Filter} ->
+            Deleted = delete_one(Coll, Filter),
+            list_to_binary(io_lib:format("{\"deletedCount\":~p,\"acknowledged\":true}", [Deleted]));
+        {aggregate, Coll, Pipeline} ->
+            Docs = aggregate(Coll, Pipeline),
+            list_to_binary("[" ++ string:join(Docs, ",") ++ "]");
+        {drop, Coll} ->
+            drop_collection(Coll),
+            <<"{\"dropped\":true}">>;
+        {list_collections} ->
+            Colls = list_collections(),
+            CollsJson = [ "\"" ++ C ++ "\"" || C <- Colls ],
+            list_to_binary("{\"collections\":[" ++ string:join(CollsJson, ",") ++ "]}");
+        {stats} ->
+            get_engine_stats();
+        unknown ->
+            % If JSON query payload or generic find
+            AllDocs = find_docs(<<"telemetry_events">>, list_to_binary(CmdStr)),
+            list_to_binary("[" ++ string:join(AllDocs, ",") ++ "]")
+    end.
 
 %% ============================================================
 %%  Command parser — MongoDB shell syntax
@@ -92,12 +137,7 @@ parse_mongo_command(Str) ->
 
 try_patterns(_Str, []) -> unknown;
 try_patterns(Str, [{Pattern, Builder} | Rest]) ->
-    Captures = case re:run(Pattern, "\\(") of
-        nomatch -> 0;
-        _ -> length(re:split(Pattern, "\\(", [{return, list}])) - 1
-    end,
-    Groups = lists:seq(1, max(0, Captures)),
-    case re:run(Str, Pattern, [{capture, Groups, list}, dotall]) of
+    case re:run(Str, Pattern, [dotall, {capture, all_but_first, list}]) of
         {match, Matched} ->
             try Builder(Matched)
             catch _:_ -> try_patterns(Str, Rest)
@@ -371,15 +411,29 @@ matches_filter(_Doc, "")   -> true;
 matches_filter(_Doc, "{}") -> true;
 matches_filter(Doc, Filter) ->
     DocLower = string:to_lower(Doc),
-    case re:run(Filter, "\"([^\"]+)\"\\s*:\\s*\"?([^\",}]+)\"?", [global, {capture, [1, 2], list}]) of
-        {match, Pairs} ->
-            lists:all(fun([K, V]) ->
-                Pattern = "\"" ++ string:to_lower(K) ++ "\"\\s*:\\s*\"?" ++ string:to_lower(string:trim(V)) ++ "\"?",
-                case re:run(DocLower, Pattern) of
-                    {match, _} -> true;
-                    _ -> false
+    case re:run(Filter, "(?:\"([^\"]+)\"|([a-zA-Z0-9_]+))\\s*:\\s*(?:\"([^\"]+)\"|([^\",}]+))", [global, {capture, [1, 2, 3, 4], list}]) of
+        {match, Groups} ->
+            lists:all(fun(Group) ->
+                K = case Group of
+                    [K1, "", _, _] when K1 =/= "" -> K1;
+                    ["", K2, _, _] when K2 =/= "" -> K2;
+                    _ -> ""
+                end,
+                V = case Group of
+                    [_, _, V1, ""] when V1 =/= "" -> V1;
+                    [_, _, "", V2] when V2 =/= "" -> V2;
+                    _ -> ""
+                end,
+                if
+                    K =/= "" ->
+                        Pattern = "\"" ++ string:to_lower(K) ++ "\"\\s*:\\s*\"?" ++ string:to_lower(string:trim(V)) ++ "\"?",
+                        case re:run(DocLower, Pattern) of
+                            {match, _} -> true;
+                            _ -> false
+                        end;
+                    true -> true
                 end
-            end, Pairs);
+            end, Groups);
         _ -> true
     end.
 

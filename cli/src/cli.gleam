@@ -61,6 +61,12 @@ pub fn db_run_tuner(query: String) -> String
 @external(erlang, "cli_ffi", "db_stats")
 pub fn db_get_stats() -> String
 
+@external(erlang, "cli_ffi", "db_auto_route")
+pub fn db_auto_route(query: String) -> String
+
+@external(erlang, "cli_ffi", "db_tune_pool")
+pub fn db_tune_pool(engine: String, max: String, idle: String) -> String
+
 @external(erlang, "cli_ffi", "vector_search")
 pub fn vector_search_text(text: String) -> String
 
@@ -687,6 +693,34 @@ pub fn main() {
       do: glint.command_help(
         "Show live connection pool statuses across all 10 databases",
         fn() { glint.command(fn(_, _, _) { io.println(db_get_stats()) }) },
+      ),
+    )
+    |> glint.add(
+      at: ["db-auto"],
+      do: glint.command_help(
+        "Auto-route query across the Top 10 Database engines automatically: yoda db-auto '<query>'",
+        fn() {
+          glint.command(fn(_named, args, _flags) {
+            case args {
+              [query, ..] -> io.println(db_auto_route(query))
+              _ -> io.println("Usage: yoda db-auto '<query>'")
+            }
+          })
+        },
+      ),
+    )
+    |> glint.add(
+      at: ["db-tune-pool"],
+      do: glint.command_help(
+        "Dynamically adjust connection pool size: yoda db-tune-pool <engine> <max> <idle>",
+        fn() {
+          glint.command(fn(_named, args, _flags) {
+            case args {
+              [engine, max, idle, ..] -> io.println(db_tune_pool(engine, max, idle))
+              _ -> io.println("Usage: yoda db-tune-pool <engine> <max> <idle>")
+            }
+          })
+        },
       ),
     )
     |> glint.add(

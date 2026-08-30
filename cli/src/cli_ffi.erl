@@ -2,7 +2,7 @@
 -export([status/0, anomalies/0, top/0, unban/1, test_webhook/1, archive/0, get_argv/0,
          odbc_connect/1, odbc_query/1, audit_chain/0, audit_verify/0, diagnose/1,
          stats/0, forecast/0, export_data/1, watch_dashboard/0,
-         db_list/0, db_query/2, db_tune/1, db_stats/0,
+         db_list/0, db_query/2, db_tune/1, db_stats/0, db_auto_route/1, db_tune_pool/3,
          vector_search/1, vector_insert/2, multimodel_query/1, crdt_state/0, crdt_sync/1,
          vella_optimize/0, rate_limit_status/1, rate_limit_set/2, rate_limit_all/0,
          cache_stats/0, cache_flush/0, cache_query/2,
@@ -192,6 +192,27 @@ db_stats() ->
     inets:start(),
     Base = get_base_url(),
     case httpc:request(get, {Base ++ "/api/db/pool_stats", []}, [], []) of
+        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, Body}} -> list_to_binary(Body);
+        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _Body}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
+    end.
+
+db_auto_route(Query) ->
+    inets:start(),
+    Base = get_base_url(),
+    Url = Base ++ "/api/db/auto_route",
+    Body = binary_to_list(Query),
+    case httpc:request(post, {Url, [], "text/plain", Body}, [], []) of
+        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, RespBody}} -> list_to_binary(RespBody);
+        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _RespBody}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
+    end.
+
+db_tune_pool(Engine, MaxStr, IdleStr) ->
+    inets:start(),
+    Base = get_base_url(),
+    Url = Base ++ "/api/db/pool_tune?engine=" ++ binary_to_list(Engine) ++ "&max=" ++ binary_to_list(MaxStr) ++ "&idle=" ++ binary_to_list(IdleStr),
+    case httpc:request(post, {Url, [], "text/plain", ""}, [], []) of
         {ok, {{_Version, 200, _ReasonPhrase}, _Headers, Body}} -> list_to_binary(Body);
         {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _Body}} -> list_to_binary("Error: " ++ integer_to_list(Code));
         {error, _} -> <<"Error connecting to server">>

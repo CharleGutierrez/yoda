@@ -129,6 +129,15 @@ pub fn db_execute_query(engine: String, query: String) -> String
 @external(erlang, "db_manager", "get_pool_stats")
 pub fn db_get_pool_stats() -> String
 
+@external(erlang, "db_manager", "auto_route_query")
+pub fn db_auto_route(query: String) -> String
+
+@external(erlang, "db_manager", "tune_pool")
+pub fn db_tune_pool(engine: String, max: Int, idle: Int) -> String
+
+@external(erlang, "db_manager", "get_engine_health")
+pub fn db_get_engine_health(engine: String) -> String
+
 @external(erlang, "db_ai_tuner", "tune_query")
 pub fn db_tune_query(query: String, key: String) -> String
 
@@ -693,6 +702,33 @@ pub fn main() {
               ["api", "db", "pool_stats"] -> {
                 let stats = db_get_pool_stats()
                 wisp.json_response(stats, 200)
+              }
+              ["api", "db", "auto_route"] -> {
+                use req_body <- wisp.require_string_body(req)
+                let result = db_auto_route(string.trim(req_body))
+                wisp.json_response(result, 200)
+              }
+              ["api", "db", "pool_tune"] -> {
+                let engine = case list.key_find(wisp.get_query(req), "engine") {
+                  Ok(e) -> e
+                  Error(_) -> "postgres"
+                }
+                let max = case list.key_find(wisp.get_query(req), "max") {
+                  Ok(m) -> case int.parse(m) {
+                    Ok(i) -> i
+                    Error(_) -> 50
+                  }
+                  Error(_) -> 50
+                }
+                let idle = case list.key_find(wisp.get_query(req), "idle") {
+                  Ok(d) -> case int.parse(d) {
+                    Ok(i) -> i
+                    Error(_) -> 10
+                  }
+                  Error(_) -> 10
+                }
+                let res = db_tune_pool(engine, max, idle)
+                wisp.json_response(res, 200)
               }
               ["api", "stats"] -> {
                 let stats = timeseries_get_stats()

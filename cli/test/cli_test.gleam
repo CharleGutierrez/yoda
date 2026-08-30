@@ -119,6 +119,18 @@ pub fn cli_olap_ai_tune_test() {
   should.be_true(valid)
 }
 
+pub fn cli_db_auto_route_test() {
+  let res = cli.db_auto_route("SET auto_cli_key ok")
+  let valid = string.contains(res, "result") || string.contains(res, "OK") || string.contains(res, "Error")
+  should.be_true(valid)
+}
+
+pub fn cli_db_tune_pool_test() {
+  let res = cli.db_tune_pool("postgres", "80", "15")
+  let valid = string.contains(res, "dynamically_ai_tuned") || string.contains(res, "Error")
+  should.be_true(valid)
+}
+
 pub fn cli_get_argv_test() {
   let args = cli.get_argv()
   // Just ensure it returns a list

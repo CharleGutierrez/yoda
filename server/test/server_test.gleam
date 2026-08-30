@@ -304,6 +304,78 @@ pub fn olap_ai_tuner_and_stats_test() {
   should.be_true(string.contains(stats, "vector_simd_width") && string.contains(stats, "total_columnar_cells"))
 }
 
+pub fn multi_db_manager_top10_engines_routing_test() {
+  server.init_db_manager()
+
+  // 1. List all 10 Engines
+  let engines = server.db_list_engines()
+  should.be_true(
+    string.contains(engines, "postgres")
+    && string.contains(engines, "redis")
+    && string.contains(engines, "mongodb")
+    && string.contains(engines, "snowflake")
+    && string.contains(engines, "elasticsearch")
+    && string.contains(engines, "scylla_cassandra")
+  )
+
+  // 2. Query Redis via DB Manager
+  let _ = server.db_execute_query("redis", "SET master_cluster_status ACTIVE")
+  let redis_res = server.db_execute_query("redis", "GET master_cluster_status")
+  should.be_true(string.contains(redis_res, "ACTIVE"))
+
+  // 3. Query MongoDB via DB Manager
+  let mongo_res = server.db_execute_query("mongodb", "db.device_registry.find({})")
+  should.be_true(string.contains(mongo_res, "gateway_eu_01") || string.contains(mongo_res, "documents"))
+
+  // 4. Query Elasticsearch via DB Manager
+  let elastic_res = server.db_execute_query("elasticsearch", "timeout")
+  should.be_true(string.contains(elastic_res, "hits"))
+
+  // 5. Query ClickHouse/Snowflake via DB Manager
+  let olap_res = server.db_execute_query("snowflake", "SELECT region, COUNT(*) AS count FROM sensor_telemetry GROUP BY region;")
+  should.be_true(string.contains(olap_res, "count") && string.contains(olap_res, "data"))
+
+  // 6. Query Cassandra/Scylla via DB Manager
+  let cass_res = server.db_execute_query("scylla_cassandra", "SELECT * FROM telemetry_by_device WHERE device_id = 'device_alpha';")
+  should.be_true(string.contains(cass_res, "device_alpha") || string.contains(cass_res, "rows"))
+}
+
+pub fn multi_db_manager_auto_routing_test() {
+  server.init_db_manager()
+
+  // 1. Auto-route Redis syntax
+  let redis_auto = server.db_auto_route("SET auto_key test_val")
+  should.be_true(string.contains(redis_auto, "OK") || string.contains(redis_auto, "result"))
+
+  // 2. Auto-route Mongo syntax
+  let mongo_auto = server.db_auto_route("db.users.find({\"role\":\"superadmin\"})")
+  should.be_true(string.contains(mongo_auto, "admin") || string.contains(mongo_auto, "documents"))
+
+  // 3. Auto-route Cassandra syntax
+  let cass_auto = server.db_auto_route("DESCRIBE KEYSPACES;")
+  should.be_true(string.contains(cass_auto, "keyspace_name") || string.contains(cass_auto, "yoda_ks"))
+
+  // 4. Auto-route Snowflake/ClickHouse syntax
+  let olap_auto = server.db_auto_route("SELECT region, AVG(temperature) AS avg_temp FROM sensor_telemetry GROUP BY region;")
+  should.be_true(string.contains(olap_auto, "avg_temp") && string.contains(olap_auto, "data"))
+}
+
+pub fn multi_db_manager_pool_tuning_and_ai_test() {
+  server.init_db_manager()
+
+  // 1. Connection Pool Stats
+  let pool_stats = server.db_get_pool_stats()
+  should.be_true(string.contains(pool_stats, "postgres") && string.contains(pool_stats, "redis"))
+
+  // 2. Dynamic Pool Tuning
+  let tune_res = server.db_tune_pool("postgres", 100, 20)
+  should.be_true(string.contains(tune_res, "dynamically_ai_tuned") && string.contains(tune_res, "100"))
+
+  // 3. AI Multi-DB Tuner Workload Routing Recommendation
+  let ai_tune = server.db_tune_query("SELECT region, AVG(cost_usd) FROM sensor_telemetry GROUP BY region;", "no_key")
+  should.be_true(string.contains(ai_tune, "Snowflake") || string.contains(ai_tune, "Columnar OLAP"))
+}
+
 fn list_has_item(items: List(String), target: String) -> Bool {
   case items {
     [] -> False
