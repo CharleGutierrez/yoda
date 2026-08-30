@@ -67,6 +67,15 @@ pub fn db_auto_route(query: String) -> String
 @external(erlang, "cli_ffi", "db_tune_pool")
 pub fn db_tune_pool(engine: String, max: String, idle: String) -> String
 
+@external(erlang, "cli_ffi", "db_explain")
+pub fn db_explain(query: String) -> String
+
+@external(erlang, "cli_ffi", "db_rewrite")
+pub fn db_rewrite(query: String) -> String
+
+@external(erlang, "cli_ffi", "db_indexes")
+pub fn db_indexes(query: String) -> String
+
 @external(erlang, "cli_ffi", "vector_search")
 pub fn vector_search_text(text: String) -> String
 
@@ -718,6 +727,48 @@ pub fn main() {
             case args {
               [engine, max, idle, ..] -> io.println(db_tune_pool(engine, max, idle))
               _ -> io.println("Usage: yoda db-tune-pool <engine> <max> <idle>")
+            }
+          })
+        },
+      ),
+    )
+    |> glint.add(
+      at: ["db-explain"],
+      do: glint.command_help(
+        "Explain query execution plan with cost estimation: yoda db-explain '<query>'",
+        fn() {
+          glint.command(fn(_named, args, _flags) {
+            case args {
+              [query, ..] -> io.println(db_explain(query))
+              _ -> io.println("Usage: yoda db-explain '<query>'")
+            }
+          })
+        },
+      ),
+    )
+    |> glint.add(
+      at: ["db-rewrite"],
+      do: glint.command_help(
+        "Generate optimized query rewrite: yoda db-rewrite '<query>'",
+        fn() {
+          glint.command(fn(_named, args, _flags) {
+            case args {
+              [query, ..] -> io.println(db_rewrite(query))
+              _ -> io.println("Usage: yoda db-rewrite '<query>'")
+            }
+          })
+        },
+      ),
+    )
+    |> glint.add(
+      at: ["db-indexes"],
+      do: glint.command_help(
+        "Synthesize optimal DDL indexes for a query: yoda db-indexes '<query>'",
+        fn() {
+          glint.command(fn(_named, args, _flags) {
+            case args {
+              [query, ..] -> io.println(db_indexes(query))
+              _ -> io.println("Usage: yoda db-indexes '<query>'")
             }
           })
         },

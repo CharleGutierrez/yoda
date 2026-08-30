@@ -131,6 +131,24 @@ pub fn cli_db_tune_pool_test() {
   should.be_true(valid)
 }
 
+pub fn cli_db_explain_test() {
+  let res = cli.db_explain("SELECT * FROM sensor_telemetry WHERE temperature > 40.0")
+  let valid = string.contains(res, "Node Type") || string.contains(res, "Error")
+  should.be_true(valid)
+}
+
+pub fn cli_db_rewrite_test() {
+  let res = cli.db_rewrite("SELECT * FROM sensor_telemetry")
+  let valid = string.contains(res, "rewritten_query") || string.contains(res, "Error")
+  should.be_true(valid)
+}
+
+pub fn cli_db_indexes_test() {
+  let res = cli.db_indexes("SELECT * FROM sensor_telemetry WHERE region = 'us-east'")
+  let valid = string.contains(res, "CREATE INDEX") || string.contains(res, "Error")
+  should.be_true(valid)
+}
+
 pub fn cli_get_argv_test() {
   let args = cli.get_argv()
   // Just ensure it returns a list

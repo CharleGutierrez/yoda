@@ -376,6 +376,54 @@ pub fn multi_db_manager_pool_tuning_and_ai_test() {
   should.be_true(string.contains(ai_tune, "Snowflake") || string.contains(ai_tune, "Columnar OLAP"))
 }
 
+pub fn ai_query_optimizer_cbo_and_cost_analysis_test() {
+  server.init_db_manager()
+
+  // 1. Cost-Based Optimization and Cost Reduction Percentage
+  let q = "SELECT * FROM sensor_telemetry WHERE temperature > 50.0 AND region = 'us-east' GROUP BY region;"
+  let tune_res = server.db_tune_query(q, "no_key")
+  should.be_true(
+    string.contains(tune_res, "cost_analysis")
+    && string.contains(tune_res, "estimated_cost_original")
+    && string.contains(tune_res, "estimated_cost_optimized")
+    && string.contains(tune_res, "cost_reduction_pct")
+    && string.contains(tune_res, "autonomous_cbo_ai_optimized")
+  )
+
+  // 2. Execution plan presence in tune report
+  should.be_true(string.contains(tune_res, "execution_plan") && string.contains(tune_res, "Node Type"))
+}
+
+pub fn ai_query_optimizer_plan_explain_and_rewrite_test() {
+  server.init_db_manager()
+
+  // 1. Explain Plan Tree
+  let q1 = "SELECT region, COUNT(*) FROM sensor_telemetry WHERE temperature > 40.0 GROUP BY region ORDER BY count DESC LIMIT 10;"
+  let plan_res = server.db_explain_plan(q1)
+  should.be_true(
+    string.contains(plan_res, "Node Type")
+    && string.contains(plan_res, "Total Cost")
+    && string.contains(plan_res, "Plan Rows")
+  )
+
+  // 2. Automated Query Rewrite
+  let q2 = "SELECT * FROM sensor_telemetry WHERE region = 'eu-central';"
+  let rewrite_res = server.db_optimize_rewrite(q2)
+  should.be_true(string.contains(rewrite_res, "device_id") && string.contains(rewrite_res, "LIMIT 100"))
+}
+
+pub fn ai_query_optimizer_index_synthesis_test() {
+  server.init_db_manager()
+
+  // 1. Synthesize Indexes for composite predicates and grouping
+  let q = "SELECT region, temperature FROM sensor_telemetry WHERE region = 'us-east' AND status = 'NORMAL' AND device_id LIKE '%alpha%' GROUP BY region;"
+  let idx_res = server.db_synthesize_indexes(q)
+  should.be_true(
+    string.contains(idx_res, "CREATE INDEX")
+    && string.contains(idx_res, "idx_sensor_telemetry")
+  )
+}
+
 fn list_has_item(items: List(String), target: String) -> Bool {
   case items {
     [] -> False

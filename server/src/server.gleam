@@ -141,6 +141,15 @@ pub fn db_get_engine_health(engine: String) -> String
 @external(erlang, "db_ai_tuner", "tune_query")
 pub fn db_tune_query(query: String, key: String) -> String
 
+@external(erlang, "db_ai_tuner", "explain_plan")
+pub fn db_explain_plan(query: String) -> String
+
+@external(erlang, "db_ai_tuner", "optimize_query_rewrite")
+pub fn db_optimize_rewrite(query: String) -> String
+
+@external(erlang, "db_ai_tuner", "synthesize_indexes")
+pub fn db_synthesize_indexes(query: String) -> String
+
 @external(erlang, "mongo_engine", "execute_mongo")
 pub fn mongo_execute(cmd: String) -> String
 
@@ -698,6 +707,21 @@ pub fn main() {
                 }
                 let report = db_tune_query(string.trim(req_body), key)
                 wisp.json_response(report, 200)
+              }
+              ["api", "db", "explain"] -> {
+                use req_body <- wisp.require_string_body(req)
+                let plan = db_explain_plan(string.trim(req_body))
+                wisp.json_response(plan, 200)
+              }
+              ["api", "db", "rewrite"] -> {
+                use req_body <- wisp.require_string_body(req)
+                let rewritten = db_optimize_rewrite(string.trim(req_body))
+                wisp.json_response("{\"rewritten_query\":\"" <> string.replace(rewritten, "\"", "\\\"") <> "\"}", 200)
+              }
+              ["api", "db", "indexes"] -> {
+                use req_body <- wisp.require_string_body(req)
+                let indexes = db_synthesize_indexes(string.trim(req_body))
+                wisp.json_response(indexes, 200)
               }
               ["api", "db", "pool_stats"] -> {
                 let stats = db_get_pool_stats()
