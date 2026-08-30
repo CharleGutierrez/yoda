@@ -35,9 +35,18 @@ vella_tune_timeseries(Base, _) -> Base.
 vella_tune_compression(Base, Disk) when Disk > 85.0 -> Base * 2.0;
 vella_tune_compression(Base, Disk) when Disk < 40.0 -> Base * 0.5;
 vella_tune_compression(Base, _) -> Base.
-query_sqlite(_Db, Query) ->
-    list_to_binary(io_lib:format("[{\"status\":\"sqlite_in_memory_executed\",\"query\":\"~s\",\"result\":[{\"val\":42,\"system\":\"Yoda Sentinel\"}]}]", [binary_to_list(Query)])).
+query_sqlite(_Db, QueryBin) ->
+    Q = if is_binary(QueryBin) -> QueryBin; true -> list_to_binary(QueryBin) end,
+    EscapedQ = binary:replace(Q, <<"\"">>, <<"\\\"">>, [global]),
+    <<"[{\"status\":\"sqlite_in_memory_executed\",\"query\":\"", EscapedQ/binary, "\",\"result\":[{\"val\":42,\"system\":\"Yoda Sentinel\"}]}]">>.
 watch_legacy_dbf(Path) -> <<"Watching DBF: ", Path/binary>>.
 connect_legacy_odbc(_Conn) -> <<"ODBC Ready">>.
-query_legacy_odbc(_Conn, Query) -> list_to_binary(io_lib:format("[{\"status\":\"odbc_executed\",\"query\":\"~s\"}]", [binary_to_list(Query)])).
-broadcast_mutation(Topic, Path, Status) -> list_to_binary(io_lib:format("{\"topic\":\"~s\",\"path\":\"~s\",\"status\":\"~s\"}", [Topic, Path, Status])).
+query_legacy_odbc(_Conn, QueryBin) ->
+    Q = if is_binary(QueryBin) -> QueryBin; true -> list_to_binary(QueryBin) end,
+    EscapedQ = binary:replace(Q, <<"\"">>, <<"\\\"">>, [global]),
+    <<"[{\"status\":\"odbc_executed\",\"query\":\"", EscapedQ/binary, "\"}]">>.
+broadcast_mutation(Topic, Path, Status) ->
+    T = if is_binary(Topic) -> Topic; true -> list_to_binary(Topic) end,
+    P = if is_binary(Path) -> Path; true -> list_to_binary(Path) end,
+    S = if is_binary(Status) -> Status; true -> list_to_binary(Status) end,
+    <<"{\"topic\":\"", T/binary, "\",\"path\":\"", P/binary, "\",\"status\":\"", S/binary, "\"}">>.

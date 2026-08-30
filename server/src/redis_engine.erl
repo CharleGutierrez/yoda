@@ -1,5 +1,6 @@
 -module(redis_engine).
--export([init/0, execute/1, check_expired/1]).
+-compile({no_auto_import, [get/1]}).
+-export([init/0, execute/1, check_expired/1, set/2, setex/3, get/1]).
 
 -define(KV_TABLE, yoda_redis_kv).
 -define(HASH_TABLE, yoda_redis_hash).
@@ -16,11 +17,7 @@ init() ->
     ensure_table(?ZSET_TABLE, set),
     ensure_table(?TTL_TABLE, set),
     % Seed sample Redis keys
-    execute(<<"SET system:name Yoda-Sentinel">>),
-    execute(<<"HSET device:sensor_01 location Frankfurt status active voltage 12.4">>),
-    execute(<<"LPUSH telemetry_queue 45.2">>),
-    execute(<<"LPUSH telemetry_queue 88.7">>),
-    execute(<<"ZADD leaderboard 1500 node_alpha 2400 node_beta 3200 node_gamma">>),
+    set(<<"system:name">>, <<"Yoda-Sentinel">>),
     ok.
 
 ensure_table(TableName, Type) ->
@@ -28,6 +25,32 @@ ensure_table(TableName, Type) ->
         undefined ->
             ets:new(TableName, [named_table, public, Type, {read_concurrency, true}, {write_concurrency, true}]);
         _ -> ok
+    end.
+
+set(KeyBin, ValBin) ->
+    Key = if is_binary(KeyBin) -> KeyBin; true -> list_to_binary(KeyBin) end,
+    Val = if is_binary(ValBin) -> ValBin; true -> list_to_binary(ValBin) end,
+    ets:delete(?TTL_TABLE, Key),
+    ets:insert(?KV_TABLE, {Key, Val}),
+    ok.
+
+setex(KeyBin, Seconds, ValBin) ->
+    Key = if is_binary(KeyBin) -> KeyBin; true -> list_to_binary(KeyBin) end,
+    Val = if is_binary(ValBin) -> ValBin; true -> list_to_binary(ValBin) end,
+    ExpireMs = erlang:system_time(millisecond) + (max(1, Seconds) * 1000),
+    ets:insert(?KV_TABLE, {Key, Val}),
+    ets:insert(?TTL_TABLE, {Key, ExpireMs}),
+    ok.
+
+get(KeyBin) ->
+    Key = if is_binary(KeyBin) -> KeyBin; true -> list_to_binary(KeyBin) end,
+    case check_expired(Key) of
+        true -> null;
+        false ->
+            case ets:lookup(?KV_TABLE, Key) of
+                [{_, Val}] -> {ok, Val};
+                [] -> null
+            end
     end.
 
 check_expired(KeyBin) ->
@@ -59,41 +82,27 @@ dispatch_cmd("PING", [Msg | _]) ->
     list_to_binary(io_lib:format("\"~s\"", [Msg]));
 
 % --- Strings ---
-dispatch_cmd("SET", [Key, Val | _]) ->
-    KeyBin = list_to_binary(Key),
-    ValBin = list_to_binary(Val),
-    ets:delete(?TTL_TABLE, KeyBin),
-    ets:insert(?KV_TABLE, {KeyBin, ValBin}),
+dispatch_cmd("SET", [Key | ValRest]) ->
+    ValStr = string:join(ValRest, " "),
+    set(Key, ValStr),
     <<"{\"result\":\"OK\"}">>;
 
-dispatch_cmd("SETEX", [Key, SecondsStr, Val | _]) ->
-    KeyBin = list_to_binary(Key),
-    ValBin = list_to_binary(Val),
+dispatch_cmd("SETEX", [Key, SecondsStr | ValRest]) ->
     Seconds = list_to_integer_safe(SecondsStr, 60),
-    ExpireMs = erlang:system_time(millisecond) + (Seconds * 1000),
-    ets:insert(?KV_TABLE, {KeyBin, ValBin}),
-    ets:insert(?TTL_TABLE, {KeyBin, ExpireMs}),
+    ValStr = string:join(ValRest, " "),
+    setex(Key, Seconds, ValStr),
     <<"{\"result\":\"OK\"}">>;
 
 dispatch_cmd("GET", [Key | _]) ->
-    KeyBin = list_to_binary(Key),
-    case check_expired(KeyBin) of
-        true -> list_to_binary(io_lib:format("{\"key\":\"~s\",\"value\":null}", [Key]));
-        false ->
-            case ets:lookup(?KV_TABLE, KeyBin) of
-                [{_, Val}] -> list_to_binary(io_lib:format("{\"key\":\"~s\",\"value\":\"~s\"}", [Key, binary_to_list(Val)]));
-                [] -> list_to_binary(io_lib:format("{\"key\":\"~s\",\"value\":null}", [Key]))
-            end
+    case get(Key) of
+        null -> list_to_binary(io_lib:format("{\"key\":\"~s\",\"value\":null}", [Key]));
+        {ok, Val} -> list_to_binary(io_lib:format("{\"key\":\"~s\",\"value\":\"~s\"}", [Key, binary_to_list(Val)]))
     end;
 
 dispatch_cmd("MGET", Keys) ->
-    Results = [ case check_expired(list_to_binary(K)) of
-                    true -> io_lib:format("{\"key\":\"~s\",\"value\":null}", [K]);
-                    false ->
-                        case ets:lookup(?KV_TABLE, list_to_binary(K)) of
-                            [{_, V}] -> io_lib:format("{\"key\":\"~s\",\"value\":\"~s\"}", [K, binary_to_list(V)]);
-                            [] -> io_lib:format("{\"key\":\"~s\",\"value\":null}", [K])
-                        end
+    Results = [ case get(K) of
+                    null -> io_lib:format("{\"key\":\"~s\",\"value\":null}", [K]);
+                    {ok, V} -> io_lib:format("{\"key\":\"~s\",\"value\":\"~s\"}", [K, binary_to_list(V)])
                 end || K <- Keys ],
     list_to_binary("[" ++ string:join(Results, ",") ++ "]");
 
@@ -111,7 +120,8 @@ dispatch_cmd("DECRBY", [Key, StepStr | _]) ->
     Step = list_to_integer_safe(StepStr, 1),
     incr_by(Key, -Step);
 
-dispatch_cmd("APPEND", [Key, ExtraVal | _]) ->
+dispatch_cmd("APPEND", [Key | ExtraRest]) ->
+    ExtraVal = string:join(ExtraRest, " "),
     KeyBin = list_to_binary(Key),
     case check_expired(KeyBin) of true -> ok; false -> ok end,
     NewVal = case ets:lookup(?KV_TABLE, KeyBin) of

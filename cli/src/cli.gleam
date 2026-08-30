@@ -85,6 +85,15 @@ pub fn rate_limit_configure(limit: String, window: String) -> String
 @external(erlang, "cli_ffi", "rate_limit_all")
 pub fn rate_limit_view_all() -> String
 
+@external(erlang, "cli_ffi", "cache_stats")
+pub fn get_cache_stats() -> String
+
+@external(erlang, "cli_ffi", "cache_flush")
+pub fn run_cache_flush() -> String
+
+@external(erlang, "cli_ffi", "cache_query")
+pub fn run_cached_query(engine: String, query: String) -> String
+
 @external(erlang, "cli_ffi", "get_argv")
 pub fn get_argv() -> List(String)
 
@@ -104,7 +113,35 @@ pub fn main() {
       at: ["version"],
       do: glint.command_help(
         "Prints CLI version",
-        fn() { glint.command(fn(_, _, _) { io.println("Yoda CLI version 1.5.0 (Variable Rate Limiter & High-Precision Quotas)") }) },
+        fn() { glint.command(fn(_, _, _) { io.println("Yoda CLI version 1.6.0 (Redis Semantic Cache & Multi-Model Platform)") }) },
+      ),
+    )
+    |> glint.add(
+      at: ["cache-stats"],
+      do: glint.command_help(
+        "Show live Redis Cache statistics (Hits, Misses, Hit Ratio %, Active Keys)",
+        fn() { glint.command(fn(_, _, _) { io.println(get_cache_stats()) }) },
+      ),
+    )
+    |> glint.add(
+      at: ["cache-flush"],
+      do: glint.command_help(
+        "Flush and reset all cached query results in Redis",
+        fn() { glint.command(fn(_, _, _) { io.println(run_cache_flush()) }) },
+      ),
+    )
+    |> glint.add(
+      at: ["cache-query"],
+      do: glint.command_help(
+        "Execute query with transparent Redis semantic caching: yoda cache-query <engine> <query>",
+        fn() {
+          glint.command(fn(_named, args, _flags) {
+            case args {
+              [engine, query, ..] -> io.println(run_cached_query(engine, query))
+              _ -> io.println("Usage: yoda cache-query <engine> <query>")
+            }
+          })
+        },
       ),
     )
     |> glint.add(

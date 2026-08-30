@@ -132,6 +132,18 @@ pub fn db_get_pool_stats() -> String
 @external(erlang, "db_ai_tuner", "tune_query")
 pub fn db_tune_query(query: String, key: String) -> String
 
+@external(erlang, "redis_cache", "init")
+pub fn init_redis_cache() -> Nil
+
+@external(erlang, "redis_cache", "get_cache_stats_json")
+pub fn redis_get_cache_stats() -> String
+
+@external(erlang, "redis_cache", "flush_cache")
+pub fn redis_flush_cache() -> String
+
+@external(erlang, "redis_cache", "execute_cached_query")
+pub fn redis_execute_cached_query(engine: String, query: String) -> String
+
 @external(erlang, "vector_db", "init")
 pub fn init_vector_db() -> Nil
 
@@ -173,6 +185,7 @@ pub fn main() {
   init_crypto_audit()
   init_timeseries_store()
   init_db_manager()
+  init_redis_cache()
   init_vector_db()
   init_multi_model_engine()
   init_edge_sync_crdt()
@@ -261,6 +274,23 @@ pub fn main() {
                 let uptime_val = os_helper.system_time_seconds() - start_time
                 let dyn_val = int.to_string(uptime_val)
                 wisp.json_response("{\"status\":\"healthy\",\"uptime\":" <> dyn_val <> "}", 200)
+              }
+              ["api", "cache", "stats"] -> {
+                let stats = redis_get_cache_stats()
+                wisp.json_response(stats, 200)
+              }
+              ["api", "cache", "flush"] -> {
+                let res = redis_flush_cache()
+                wisp.json_response(res, 200)
+              }
+              ["api", "cache", "query"] -> {
+                use req_body <- wisp.require_string_body(req)
+                let engine = case list.key_find(wisp.get_query(req), "engine") {
+                  Ok(e) -> e
+                  Error(_) -> "sqlite"
+                }
+                let result = redis_execute_cached_query(engine, string.trim(req_body))
+                wisp.json_response(result, 200)
               }
               ["api", "vella", "optimize"] -> {
                 let vella_report = legacy_bridge.run_vella_system_optimization()
@@ -531,7 +561,7 @@ pub fn main() {
     |> mist.port(port)
     |> mist.start
 
-  io.println("Yoda Variable Rate Limiter Platform started on http://localhost:" <> int.to_string(port))
+  io.println("Yoda Semantic Redis Cache & Multi-Model Server started on http://localhost:" <> int.to_string(port))
   process.sleep_forever()
 }
 
