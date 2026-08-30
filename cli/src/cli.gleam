@@ -7,6 +7,9 @@ pub fn unban(ip: String) -> String
 @external(erlang, "cli_ffi", "status")
 pub fn ping_status() -> String
 
+@external(erlang, "cli_ffi", "vella_optimize")
+pub fn vella_optimize() -> String
+
 @external(erlang, "cli_ffi", "anomalies")
 pub fn get_anomalies() -> String
 
@@ -92,7 +95,14 @@ pub fn main() {
       at: ["version"],
       do: glint.command_help(
         "Prints CLI version",
-        fn() { glint.command(fn(_, _, _) { io.println("Yoda CLI version 1.3.0 (2020s Multi-Model, Vector & CRDT Edition)") }) },
+        fn() { glint.command(fn(_, _, _) { io.println("Yoda CLI version 1.4.0 (Vella Engine Optimized)") }) },
+      ),
+    )
+    |> glint.add(
+      at: ["vella-optimize"],
+      do: glint.command_help(
+        "Run emergency Vella AI Optimizer-Tuner on system hardware, memory, and telemetry queues",
+        fn() { glint.command(fn(_, _, _) { io.println(vella_optimize()) }) },
       ),
     )
     |> glint.add(

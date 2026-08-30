@@ -2,19 +2,20 @@
 
 <img src="assets/logo.svg" alt="Yoda Logo" width="100%" />
 
-# YODA (v1.3.0 - 2020s Architectural Trends Edition)
+# YODA (v1.4.0 - Vella Engine Optimized Edition)
 
-**High-Performance Real-Time Legacy Data Bridge, Universal Multi-Model Convergence (JSONB + FTS + Vectors), Embedded AI Vector Store, Local-First CRDT Edge Sync & Autonomous DBA Optimizer-Tuner**
+**High-Performance Real-Time Legacy Data Bridge, Universal Multi-Model Convergence (JSONB + FTS + Vectors), Vella Autonomous AI Engine & Cryptographic Telemetry Sentinel**
 
 [![Gleam](https://img.shields.io/badge/Gleam-1.4.1-ffaff3?style=for-the-badge&logo=gleam&logoColor=white)](https://gleam.run/)
 [![Erlang/OTP](https://img.shields.io/badge/Erlang%2FOTP-26.0+-A90533?style=for-the-badge&logo=erlang&logoColor=white)](https://www.erlang.org/)
 [![Rust](https://img.shields.io/badge/Rust-1.70+-DEA584?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
+[![Vella](https://img.shields.io/badge/Vella%20Engine-Active-blueviolet?style=for-the-badge)](https://github.com/CharleGutierrez/Vella)
 [![Lustre](https://img.shields.io/badge/Frontend-Lustre%20TEA-00FFA3?style=for-the-badge)](https://hexdocs.pm/lustre/)
 [![License](https://img.shields.io/badge/License-Apache--2.0-blue?style=for-the-badge)](LICENSE)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](Dockerfile)
 
 <p align="center">
-  <b>Multi-Model Convergence (FTS+Vector)</b> • <b>Embedded AI Vector Store</b> • <b>Local-First CRDT Edge Sync</b> • <b>Top 10 Databases Hub</b> • <b>Autonomous AI DBA Tuner</b>
+  <b>Vella AI Optimizer-Tuner</b> • <b>Multi-Model Convergence (FTS+Vector)</b> • <b>Top 10 Universal Databases</b> • <b>Local-First CRDT Edge Sync</b> • <b>SHA-256 Audit Ledger</b>
 </p>
 
 </div>
@@ -23,97 +24,81 @@
 
 ## 📑 Table of Contents
 - [1. Executive Overview](#1-executive-overview)
-- [2. The 3 Key Architectural Trends of the 2020s in Yoda](#2-the-3-key-architectural-trends-of-the-2020s-in-yoda)
-  - [Trend 1: Multi-Model Convergence (Relational + JSONB + FTS + Vectors)](#trend-1-multi-model-convergence-relational--jsonb--fts--vectors)
-  - [Trend 2: Embedded AI Vector Store & Semantic Cosine Search](#trend-2-embedded-ai-vector-store--semantic-cosine-search)
-  - [Trend 3: Local-First & Edge CRDT Synchronization](#trend-3-local-first--edge-crdt-synchronization)
-- [3. Top 10 Database Integrations & AI Optimizer-Tuner](#3-top-10-database-integrations--ai-optimizer-tuner)
-- [4. Complete Subsystems Architecture](#4-complete-subsystems-architecture)
-- [5. Installation & Quickstart](#5-installation--quickstart)
-- [6. Step-by-Step Tutorials & Manuals](#6-step-by-step-tutorials--manuals)
-  - [Tutorial 1: Vector Similarity Search & Semantic Embedding](#tutorial-1-vector-similarity-search--semantic-embedding)
-  - [Tutorial 2: Executing Multi-Model Converged Queries](#tutorial-2-executing-multi-model-converged-queries)
-  - [Tutorial 3: Local-First Edge Synchronization via CRDTs](#tutorial-3-local-first-edge-synchronization-via-crdts)
-  - [Tutorial 4: Querying the Top 10 Databases & Running the AI Tuner](#tutorial-4-querying-the-top-10-databases--running-the-ai-tuner)
-  - [Tutorial 5: Real-Time Terminal TUI Watcher & Telemetry Export](#tutorial-5-real-time-terminal-tui-watcher--telemetry-export)
-- [7. Complete API & CLI Reference](#7-complete-api--cli-reference)
-- [8. Configuration & Environment Variables](#8-configuration--environment-variables)
-- [9. License & Contributing](#9-license--contributing)
+- [2. Vella Framework Deep Optimization Integration](#2-vella-framework-deep-optimization-integration)
+- [3. The 3 Key Architectural Trends of the 2020s in Yoda](#3-the-3-key-architectural-trends-of-the-2020s-in-yoda)
+- [4. Top 10 Universal Databases & AI DBA Tuner](#4-top-10-universal-databases--ai-dba-tuner)
+- [5. Subsystems Architecture](#5-subsystems-architecture)
+- [6. Installation & Quickstart](#6-installation--quickstart)
+- [7. Step-by-Step Tutorials & Manuals](#7-step-by-step-tutorials--manuals)
+  - [Tutorial 1: Running Emergency Vella AI Optimization](#tutorial-1-running-emergency-vella-ai-optimization)
+  - [Tutorial 2: Vector Similarity Search & Semantic Embedding](#tutorial-2-vector-similarity-search--semantic-embedding)
+  - [Tutorial 3: Multi-Model Converged Queries (Relational + JSON + FTS + Vector)](#tutorial-3-multi-model-converged-queries-relational--json--fts--vector)
+  - [Tutorial 4: Local-First CRDT Edge Synchronization](#tutorial-4-local-first-crdt-edge-synchronization)
+  - [Tutorial 5: Real-Time Multi-Database Querying (Top 10 Databases)](#tutorial-5-real-time-multi-database-querying-top-10-databases)
+  - [Tutorial 6: Terminal TUI Watcher & Telemetry Export](#tutorial-6-terminal-tui-watcher--telemetry-export)
+- [8. Complete API & CLI Reference](#8-complete-api--cli-reference)
+- [9. Configuration & Environment Variables](#9-configuration--environment-variables)
+- [10. License & Contributing](#10-license--contributing)
 
 ---
 
 ## 1. Executive Overview
 
-**Yoda** is a state-of-the-art telemetry platform and data bridge engineered for the dominant architectural shifts of the 2020s:
-1. **Multi-Model Convergence:** Eliminating database sprawl by unifying Relational Tables, JSON Documents, Inverted Full-Text Search (FTS), and Dense Vector Embeddings into a single queryable engine.
-2. **Embedded AI Vector Database:** In-memory dense float vector indexing with Cosine Similarity search and semantic feature embedding.
-3. **Local-First & Edge CRDT Synchronization:** Conflict-Free Replicated Data Types (LWW-Map, PN-Counters, and Vector Clocks) enabling offline-capable edge nodes to synchronize seamlessly with zero lock contention.
-4. **Top 10 Universal Databases:** Native connectors and in-memory bridges for PostgreSQL (pgvector), MySQL, MongoDB, Redis, SQLite, MSSQL, Oracle, Snowflake, Elasticsearch, and ScyllaDB.
-5. **Autonomous AI Optimizer-Tuner:** Real-time query plan analysis, B-Tree index generation, and intelligent storage tier routing.
+**Yoda** is a distributed telemetry platform and universal multi-database bridge powered by the **Vella Framework** (`vella::ai::tuner::AiTuner`).
+
+When real-time telemetry loads spike or hardware resources are strained, Yoda engages Vella's native OS auto-tuner to:
+1. **Dynamically Scale Time-Series Resolution:** Widens downsampling intervals when query latency exceeds SLA thresholds.
+2. **Auto-Tune Semantic Cache Cosine Thresholds:** Optimizes vector caching accuracy vs token cost.
+3. **Adaptive Swinging Door Trend Compression:** Aggressively drops unneeded sensor noise when storage exceeds 85% disk capacity.
+4. **Autonomous Circuit Breaker Stretching:** Expands cooldown windows when upstream services experience volatility.
+5. **Intelligent Tier Routing:** Automatically promotes high-frequency files to in-memory RAM caching.
 
 ---
 
-## 2. The 3 Key Architectural Trends of the 2020s in Yoda
+## 2. Vella Framework Deep Optimization Integration
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                        2020s ARCHITECTURAL TRENDS IN YODA                              │
-├───────────────────────────┬────────────────────────────────────────────────────────────┤
-│ Architectural Trend       │ Yoda Technical Implementation                              │
-├───────────────────────────┼────────────────────────────────────────────────────────────┤
-│ 1. Multi-Model Convergence│ Unified engine blending structured SQL fields, JSONB       │
-│                           │ sub-documents, Lucene-style FTS tokenization, and vectors. │
-│ 2. Vector DBs for AI      │ In-memory dense embedding store with Cosine Distance       │
-│                           │ calculations and OpenAI/local deterministic feature TF.    │
-│ 3. Local-First & Edge CRDT│ Conflict-Free Replicated Data Types (LWW-Element-Set and   │
-│                           │ P-N Counters) for offline edge persistence & sync.         │
-└───────────────────────────┴────────────────────────────────────────────────────────────┘
+│                        VELLA FRAMEWORK OPTIMIZATION MATRIX                             │
+├───────────────────────────────┬────────────────────────────────────────────────────────┤
+│ Optimization Vector           │ Vella Autonomous Action in Yoda                        │
+├───────────────────────────────┼────────────────────────────────────────────────────────┤
+│ 1. Time-Series Latency        │ Dynamically scales bucket intervals (60ms -> 300ms)    │
+│                               │ to keep analytics queries sub-millisecond.             │
+│ 2. Storage Saturation (>85%)  │ Activates Swinging Door Compression to preserve disk.  │
+│ 3. Semantic AI Cache          │ Auto-tunes Cosine threshold (0.85 - 0.95) to save tokens│
+│ 4. Downstream Failures        │ Stretches Circuit Breaker cooldowns under volatility.  │
+│ 5. Hot Storage Promotion      │ Promotes files with >1,000 accesses to RAM cache.      │
+└───────────────────────────────┴────────────────────────────────────────────────────────┘
 ```
 
-### Trend 1: Multi-Model Convergence (`multi_model_engine.erl`)
-Modern data engineering avoids maintaining separate relational databases, search clusters, and document stores. Yoda provides a **converged entity engine**:
-* Stores structured relational metadata (`ModelType`, `UpdatedAt`).
-* Stores unstructured JSON documents.
-* Automatically tokenizes and indexes text into an Inverted Full-Text Search index.
-* Generates and binds high-dimensional vector embeddings to every entity.
-* Executes blended multi-model queries across all four dimensions simultaneously!
+---
+
+## 3. The 3 Key Architectural Trends of the 2020s in Yoda
+
+* **Multi-Model Convergence:** Unifies Relational Tables, JSON Documents, Full-Text Search (FTS), and Vector Embeddings in one queryable store (`multi_model_engine.erl`).
+* **Embedded AI Vector Database:** Fast in-memory Cosine Similarity search with feature embeddings (`vector_db.erl`).
+* **Local-First & Edge CRDT Sync:** Conflict-Free Replicated Data Types (LWW-Map and P-N Counter) for offline edge nodes (`edge_sync_crdt.erl`).
 
 ---
 
-### Trend 2: Embedded AI Vector Store (`vector_db.erl`)
-With the explosion of GenAI and LLM retrieval-augmented generation (RAG), Yoda embeds an in-memory vector store:
-* Ingests dense float vectors ($\mathbb{R}^N$).
-* Performs sub-millisecond Cosine Similarity calculations:
-  $$\text{Cosine Similarity}(A, B) = \frac{\sum_{i=1}^N A_i \cdot B_i}{\|A\| \cdot \|B\|}$$
-* Automatic text embedding using local deterministic feature hashing or cloud OpenAI `text-embedding-3-small` embeddings.
+## 4. Top 10 Universal Databases & AI DBA Tuner
+
+Native query support and connection pool monitoring across:
+1. **PostgreSQL** (with pgvector & JSONB)
+2. **MySQL / MariaDB**
+3. **MongoDB**
+4. **Redis** (Sub-millisecond in-memory cache)
+5. **SQLite** (Native embedded SQL)
+6. **Microsoft SQL Server**
+7. **Oracle Database**
+8. **Snowflake / ClickHouse**
+9. **Elasticsearch / OpenSearch**
+10. **ScyllaDB / Apache Cassandra**
 
 ---
 
-### Trend 3: Local-First & Edge CRDT Synchronization (`edge_sync_crdt.erl`)
-Edge devices and client applications often operate under intermittent connectivity. Yoda embraces the local-first paradigm:
-* **Last-Write-Wins Map (LWW-Element-Set):** Merges key-value updates based on monotonic timestamps and deterministic node-ID tiebreaking.
-* **Positive-Negative Counter (P-N Counter):** Distributes increment/decrement operations across nodes without locking.
-* **Conflict-Free Convergence:** State merges mathematically guarantee that all edge clients and central servers converge to the exact same state without central database locks.
-
----
-
-## 3. Top 10 Database Integrations & AI Optimizer-Tuner
-
-Yoda natively supports:
-* **Relational & Vector:** PostgreSQL (with `pgvector` & `JSONB`), MySQL / MariaDB, SQLite (Embedded Native).
-* **In-Memory & Cache:** Redis (Sub-millisecond key-value, PubSub, counters).
-* **Document & Search:** MongoDB (BSON document filters), Elasticsearch / OpenSearch (Full-text logs).
-* **Enterprise ACID Core:** Microsoft SQL Server (MSSQL), Oracle Database.
-* **Analytical OLAP & High-Throughput Stream:** Snowflake / ClickHouse, ScyllaDB / Apache Cassandra.
-
-### Autonomous AI Optimizer-Tuner (`db_ai_tuner.erl`)
-* Detects query anti-patterns (`SELECT *`, unbounded scans, leading wildcards).
-* Suggests exact indexes (`CREATE INDEX idx_... ON ...`).
-* Recommends optimal storage tier (Hot Redis vs Transactional Postgres vs Columnar OLAP).
-
----
-
-## 4. Complete Subsystems Architecture
+## 5. Subsystems Architecture
 
 ```
                                   ┌───────────────────────────┐
@@ -127,10 +112,10 @@ Yoda natively supports:
                                 (NIF & Erlang)  │ In-Memory ETS
                                                 ▼
 ┌───────────────────────────────────────────────────────────────────────────────────────────────┐
-│                      2020s MULTI-MODEL, VECTOR & CRDT ENGINE                                  │
-│   • Multi-Model Unified Store (multi_model_engine.erl) • Vector DB (vector_db.erl)            │
-│   • Local-First Edge Sync CRDT (edge_sync_crdt.erl)    • AI Optimizer-Tuner (db_ai_tuner.erl) │
-│   • Universal Database Hub (db_manager.erl)            • In-Memory Time-Series DB             │
+│                      VELLA ENGINE & 2020s ARCHITECTURAL PLATFORM                              │
+│   • Vella AI Optimizer-Tuner (vella::ai::tuner) • Multi-Model Unified Store                   │
+│   • Embedded AI Vector DB (Cosine Sim)         • Local-First Edge Sync CRDT                   │
+│   • Top 10 Universal Database Hub              • In-Memory Time-Series Ring Buffer            │
 └───────────────────────────────────────────────┬───────────────────────────────────────────────┘
                                                 │
                                  Rustler FFI    │ UDP Socket (Port 8080)
@@ -141,8 +126,8 @@ Yoda natively supports:
 │                                                                                               │
 │   ┌──────────────────────────────────┐            ┌──────────────────────────────────────┐    │
 │   │       MIST & WISP ENGINE         │            │           OTP ACTOR SYSTEM           │    │
-│   │ • Multi-Model Query Dispatcher   │            │ • UDP Socket Receiver (Port 8080)    │    │
-│   │ • Vector Similarity Search API   │            │ • In-Memory Time-Series Ring Buffer  │    │
+│   │ • Vella Auto-Tuner Endpoint      │            │ • UDP Socket Receiver (Port 8080)    │    │
+│   │ • Multi-Model & Vector Search    │            │ • In-Memory Time-Series Ring Buffer  │    │
 │   │ • Local-First CRDT Sync API      │            │ • Cryptographic SHA-256 Audit Ledger │    │
 │   │ • Token-Authenticated WebSocket  │            │ • WebSocket Real-Time Multicaster    │    │
 │   │ • Discord & Slack Webhook Router │            │ • Deadlock-Free Rate Limiter         │    │
@@ -156,18 +141,18 @@ Yoda natively supports:
 ┌──────────────────────────────────────────────┐        ┌──────────────────────────────────────┐
 │           CLIENT (Lustre SPA)                │        │               YODA CLI               │
 │                                              │        │                                      │
-│ • Model-View-Update (TEA) State Machine      │        │ • Vector Search & Insert (vector-*)  │
-│ • Canvas <live-data-chart> (60 FPS)          │        │ • Multi-Model Query (multimodel-*)   │
-│ • Multi-Database Top 10 Dashboard            │        │ • Local-First CRDT Sync (crdt-*)     │
-│ • AI Diagnostics & Root-Cause Panel          │        │ • Database List & Query (db-*)       │
-│ • Native CSS View Transitions & Glassmorphism│        │ • Live Terminal TUI Watcher (watch)  │
-└──────────────────────────────────────────────┘        │ • Cryptographic Audit Verification   │
+│ • Model-View-Update (TEA) State Machine      │        │ • Vella System Optimizer (vella-*)   │
+│ • Canvas <live-data-chart> (60 FPS)          │        │ • Vector Search & Insert (vector-*)  │
+│ • Multi-Database Top 10 Dashboard            │        │ • Multi-Model Query (multimodel-*)   │
+│ • AI Diagnostics & Root-Cause Panel          │        │ • Local-First CRDT Sync (crdt-*)     │
+│ • Native CSS View Transitions & Glassmorphism│        │ • Database List & Query (db-*)       │
+└──────────────────────────────────────────────┘        │ • Live Terminal TUI Watcher (watch)  │
                                                         └──────────────────────────────────────┘
 ```
 
 ---
 
-## 5. Installation & Quickstart
+## 6. Installation & Quickstart
 
 ```bash
 # Clone the repository
@@ -188,89 +173,86 @@ gleam run
 
 ---
 
-## 6. Step-by-Step Tutorials & Manuals
+## 7. Step-by-Step Tutorials & Manuals
 
-### Tutorial 1: Vector Similarity Search & Semantic Embedding
+### Tutorial 1: Running Emergency Vella AI Optimization
 
-```bash
-cd cli
-
-# Perform semantic vector similarity search
-gleam run -- vector-search "cryptographic audit ledger and security"
-
-# Insert a new vector into the store
-gleam run -- vector-insert "doc_edge_ai" "Autonomous edge device data synchronization with CRDTs"
-```
-
----
-
-### Tutorial 2: Executing Multi-Model Converged Queries
-
-Execute a single unified query across Relational Tables, JSON Documents, Full-Text Search, and Vector Embeddings:
+Engage the Vella AI Optimizer-Tuner to scan system load and auto-tune runtime parameters:
 
 ```bash
 cd cli
 
-# Unified multi-model search
-gleam run -- multimodel-query "high frequency trading"
+# Run Vella System Optimization
+gleam run -- vella-optimize
 ```
 
 **Output:**
 ```json
 {
-  "query": "high-frequency trading",
-  "multi_model_mode": "Converged Relational+JSON+FTS+Vector",
-  "fts_matches": [
-    {
-      "id": "doc_node_2",
-      "model_type": "hft_gateway",
-      "document": { "location": "datacenter-eu-west", "status": "active", "throughput": 100000 },
-      "tags": ["hft", "gateway"],
-      "description": "High-frequency trading telemetry and data bridge router"
-    }
-  ],
-  "vector_matches": [
-    { "id": "doc_hft_stream", "score": 0.7241, "metadata": { "category": "streaming" } }
-  ]
+  "vella_engine_status": "Vella AI Optimizer-Tuner Active",
+  "predicted_task_delay_seconds": 0,
+  "tuned_semantic_cache_threshold": 0.85,
+  "tuned_circuit_breaker_cooldown_seconds": 30,
+  "tuned_compression_deviation": 1.5,
+  "tuned_timeseries_bucket_interval_ms": 60,
+  "tuned_rag_chunk_size_bytes": 512,
+  "recommended_storage_tier": "Memory",
+  "optimization_mode": "Autonomous High-Performance Production"
 }
 ```
 
 ---
 
-### Tutorial 3: Local-First Edge Synchronization via CRDTs
+### Tutorial 2: Vector Similarity Search & Semantic Embedding
 
 ```bash
-cd cli
+# Perform cosine similarity search on embeddings
+gleam run -- vector-search "high frequency telemetry streaming"
+```
 
-# View authoritative local-first CRDT state
+---
+
+### Tutorial 3: Multi-Model Converged Queries
+
+```bash
+# Blended Relational + JSON + Full-Text Search + Vector search
+gleam run -- multimodel-query "primary edge sensor"
+```
+
+---
+
+### Tutorial 4: Local-First CRDT Edge Synchronization
+
+```bash
+# View CRDT state
 gleam run -- crdt-state
 
 # Sync edge mutations conflict-free
-gleam run -- crdt-sync '{"key":"edge_sensor_vibe","value":"48.2Hz"}'
+gleam run -- crdt-sync '{"key":"pump_01:flow","value":"120L/min"}'
 ```
 
 ---
 
-### Tutorial 4: Querying the Top 10 Databases & Running the AI Tuner
+### Tutorial 5: Real-Time Multi-Database Querying
 
 ```bash
-# Run embedded SQLite query
+# Query SQLite
 gleam run -- db-query sqlite "SELECT 42 as answer, 'Yoda' as system"
 
-# Execute in-memory Redis command
-gleam run -- db-query redis "SET cluster:state healthy"
-gleam run -- db-query redis "GET cluster:state"
+# Execute Redis in-memory commands
+gleam run -- db-query redis "SET node:primary active"
+gleam run -- db-query redis "GET node:primary"
 
-# Run Autonomous AI Optimizer-Tuner on a SQL query
-gleam run -- db-tune "SELECT * FROM orders WHERE customer_email LIKE '%acme.com' GROUP BY store_id"
+# Run AI Query Optimizer-Tuner
+gleam run -- db-tune "SELECT * FROM telemetry WHERE sensor_id = 4"
 ```
 
 ---
 
-### Tutorial 5: Real-Time Terminal TUI Watcher & Telemetry Export
+### Tutorial 6: Terminal TUI Watcher & Telemetry Export
 
 ```bash
-# Launch live terminal telemetry monitor
+# Real-time full-screen terminal monitor
 gleam run -- watch
 
 # Export telemetry dataset to CSV
@@ -279,21 +261,21 @@ gleam run -- export csv > yoda_export.csv
 
 ---
 
-## 7. Complete API & CLI Reference
+## 8. Complete API & CLI Reference
 
 ### REST API Endpoints
 
 | Method | Endpoint | Description | Request Body | Response Format |
 |---|---|---|---|---|
-| `POST` | `/api/vector/search` | Cosine similarity vector search | `text/plain` (Query) | JSON Array of scored vectors |
-| `POST` | `/api/vector/insert` | Embeds and stores vector | `text/plain` (Text) | `{"id":"...","status":"..."}` |
-| `POST` | `/api/multimodel/query` | Converged Relational+JSON+FTS+Vector query | `text/plain` (Query) | JSON Multi-Model Result |
+| `GET` | `/api/vella/optimize` | Runs Vella AI System Optimizer-Tuner | None | JSON Vella Tuning Plan |
+| `POST` | `/api/vector/search` | Cosine similarity vector search | `text/plain` | JSON Array of scored vectors |
+| `POST` | `/api/vector/insert` | Embeds and stores vector | `text/plain` | `{"id":"...","status":"..."}` |
+| `POST` | `/api/multimodel/query` | Converged Relational+JSON+FTS+Vector query | `text/plain` | JSON Multi-Model Result |
 | `GET` | `/api/crdt/state` | Authoritative CRDT LWW & PN-Counter state | None | JSON CRDT State Object |
-| `POST` | `/api/crdt/sync` | Conflict-free edge CRDT synchronization | `text/plain` (JSON) | JSON Converged State |
+| `POST` | `/api/crdt/sync` | Conflict-free edge CRDT synchronization | `text/plain` | JSON Converged State |
 | `GET` | `/api/db/engines` | Lists all 10 supported databases | None | JSON Array of database objects |
 | `POST` | `/api/db/query?engine=<e>`| Executes query on specified engine | `text/plain` | JSON Array of rows / result |
-| `POST` | `/api/db/tune` | Autonomous AI Database Optimizer-Tuner | `text/plain` (Query) | JSON AI Tuning Report |
-| `GET` | `/api/db/pool_stats` | Live connection pool statistics | None | JSON Array of pool gauges |
+| `POST` | `/api/db/tune` | Autonomous AI Database Optimizer-Tuner | `text/plain` | JSON AI Tuning Report |
 | `GET` | `/api/status` | Server health and uptime | None | `{"status":"healthy","uptime":128}` |
 | `GET` | `/metrics` | Prometheus metrics gauge | None | Prometheus text format |
 | `GET` | `/api/stats` | In-memory rolling statistics | None | `{"total_recorded":120,"avg":51.2,...}` |
@@ -310,6 +292,7 @@ gleam run -- export csv > yoda_export.csv
 yoda [COMMAND] [ARGUMENTS...]
 
 Commands:
+  vella-optimize             Run emergency Vella AI Optimizer-Tuner on system hardware and telemetry queues
   vector-search <text>       Search vector database via cosine similarity and semantic embeddings
   vector-insert <id> <text>  Embed and insert text vector into vector store
   multimodel-query <query>   Execute unified multi-model query (Relational + JSONB + FTS + Vectors)
@@ -339,7 +322,7 @@ Commands:
 
 ---
 
-## 8. Configuration & Environment Variables
+## 9. Configuration & Environment Variables
 
 | Variable | Type | Default | Description |
 |---|---|---|---|
@@ -352,10 +335,10 @@ Commands:
 
 ---
 
-## 9. License & Contributing
+## 10. License & Contributing
 
 Project Yoda is open-source software licensed under the [Apache-2.0 License](LICENSE).
 
 <div align="center">
-  <sub>Engineered with ❤️ using Gleam, Erlang/OTP, Rust, and Lustre.</sub>
+  <sub>Engineered with ❤️ using Gleam, Erlang/OTP, Rust, Vella Framework, and Lustre.</sub>
 </div>

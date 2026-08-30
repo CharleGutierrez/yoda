@@ -219,6 +219,10 @@ pub fn main() {
                 let dyn_val = int.to_string(uptime_val)
                 wisp.json_response("{\"status\":\"healthy\",\"uptime\":" <> dyn_val <> "}", 200)
               }
+              ["api", "vella", "optimize"] -> {
+                let vella_report = legacy_bridge.run_vella_system_optimization()
+                wisp.json_response(vella_report, 200)
+              }
               ["api", "vector", "search"] -> {
                 use req_body <- wisp.require_string_body(req)
                 let key = case os_helper.get_env("AI_GATEWAY_KEY") {
@@ -490,7 +494,7 @@ pub fn main() {
     |> mist.port(port)
     |> mist.start
 
-  io.println("Yoda 2020s Multi-Model & Vector Platform started on http://localhost:" <> int.to_string(port))
+  io.println("Yoda Native Vella Multi-Model Engine started on http://localhost:" <> int.to_string(port))
   process.sleep_forever()
 }
 

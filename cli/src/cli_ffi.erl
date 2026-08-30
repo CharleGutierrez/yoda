@@ -3,7 +3,8 @@
          odbc_connect/1, odbc_query/1, audit_chain/0, audit_verify/0, diagnose/1,
          stats/0, forecast/0, export_data/1, watch_dashboard/0,
          db_list/0, db_query/2, db_tune/1, db_stats/0,
-         vector_search/1, vector_insert/2, multimodel_query/1, crdt_state/0, crdt_sync/1]).
+         vector_search/1, vector_insert/2, multimodel_query/1, crdt_state/0, crdt_sync/1,
+         vella_optimize/0]).
 
 get_base_url() ->
     case os:getenv("YODA_SERVER_URL") of
@@ -19,6 +20,15 @@ status() ->
     inets:start(),
     Base = get_base_url(),
     case httpc:request(get, {Base ++ "/api/status", []}, [], []) of
+        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, Body}} -> list_to_binary(Body);
+        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _Body}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
+    end.
+
+vella_optimize() ->
+    inets:start(),
+    Base = get_base_url(),
+    case httpc:request(get, {Base ++ "/api/vella/optimize", []}, [], []) of
         {ok, {{_Version, 200, _ReasonPhrase}, _Headers, Body}} -> list_to_binary(Body);
         {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _Body}} -> list_to_binary("Error: " ++ integer_to_list(Code));
         {error, _} -> <<"Error connecting to server">>

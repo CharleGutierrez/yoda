@@ -6,10 +6,16 @@ use std::net::UdpSocket;
 use odbc_api::{Environment, Cursor, ResultSetMetadata};
 use odbc_api::buffers::TextRowSet;
 use once_cell::sync::Lazy;
+use vella::ai::tuner::AiTuner;
 
 // Static environment for ODBC connections
 static ODBC_ENV: Lazy<Option<Environment>> = Lazy::new(|| {
     Environment::new().ok()
+});
+
+// Vella AI Optimizer-Tuner Engine
+static VELLA_TUNER: Lazy<AiTuner> = Lazy::new(|| {
+    AiTuner::new()
 });
 
 pub fn on_load(_env: Env, _info: Term) -> bool {
@@ -19,8 +25,46 @@ pub fn on_load(_env: Env, _info: Term) -> bool {
 
 #[rustler::nif]
 fn initialize() -> NifResult<String> {
-    let vella_info = format!("Yoda Universal Multi-Database Bridge v{} Active", env!("CARGO_PKG_VERSION"));
+    let vella_info = format!("Yoda Native Vella OS Engine v{} Active (Dual AI Optimizer & HFT Bridge)", env!("CARGO_PKG_VERSION"));
     Ok(vella_info)
+}
+
+#[rustler::nif]
+fn vella_optimize_system() -> NifResult<String> {
+    // Uses Vella's AI Tuner to run a full diagnostic on system pressure and auto-tune parameters
+    let delay = VELLA_TUNER.predict_optimal_delay("*/1 * * * *");
+    let cache_thresh = VELLA_TUNER.tune_semantic_cache_threshold(0.02);
+    let cooldown_secs = VELLA_TUNER.tune_circuit_breaker_cooldown(1, 30).as_secs();
+    let compression_dev = VELLA_TUNER.tune_compression_deviation(1.5, 60.0);
+    let bucket_interval = VELLA_TUNER.tune_timeseries_bucket_interval(60, 45);
+    let chunk_size = VELLA_TUNER.determine_optimal_chunk_size("telemetry_payload_stream");
+    let storage_tier = VELLA_TUNER.recommend_storage_tier("/data/timeseries.log", 2500);
+
+    let report = serde_json::json!({
+        "vella_engine_status": "Vella AI Optimizer-Tuner Active",
+        "predicted_task_delay_seconds": delay,
+        "tuned_semantic_cache_threshold": cache_thresh,
+        "tuned_circuit_breaker_cooldown_seconds": cooldown_secs,
+        "tuned_compression_deviation": compression_dev,
+        "tuned_timeseries_bucket_interval_ms": bucket_interval,
+        "tuned_rag_chunk_size_bytes": chunk_size,
+        "recommended_storage_tier": storage_tier,
+        "optimization_mode": "Autonomous High-Performance Production"
+    });
+
+    Ok(report.to_string())
+}
+
+#[rustler::nif]
+fn vella_tune_timeseries(base_interval_ms: u64, last_query_latency_ms: u64) -> NifResult<u64> {
+    let tuned = VELLA_TUNER.tune_timeseries_bucket_interval(base_interval_ms, last_query_latency_ms);
+    Ok(tuned)
+}
+
+#[rustler::nif]
+fn vella_tune_compression(base_deviation: f64, disk_usage_percent: f64) -> NifResult<f64> {
+    let tuned = VELLA_TUNER.tune_compression_deviation(base_deviation, disk_usage_percent);
+    Ok(tuned)
 }
 
 #[rustler::nif]
@@ -215,4 +259,4 @@ fn broadcast_mutation(topic: String, path: String, status: String) -> NifResult<
     Ok(format!("HFT Broadcast successful to topic {}: {} ({})", topic, path, status))
 }
 
-rustler::init!("vella_nif", [initialize, query_sqlite, watch_legacy_dbf, connect_legacy_odbc, query_legacy_odbc, broadcast_mutation], load = on_load);
+rustler::init!("vella_nif", [initialize, vella_optimize_system, vella_tune_timeseries, vella_tune_compression, query_sqlite, watch_legacy_dbf, connect_legacy_odbc, query_legacy_odbc, broadcast_mutation], load = on_load);
