@@ -1,0 +1,32 @@
+# Projectmem
+.projectmem/events.jsonl
+.projectmem/watch.pid
+.projectmem/watch.log
+.projectmem/structure.json
+
+# Gleam build artifacts
+**/build/
+build/
+*.erl.beam
+*.beam
+
+# Rust build artifacts
+**/target/
+target/
+**/*.rs.bk
+
+# Node / Vite
+**/node_modules/
+node_modules/
+dist/
+
+# Runtime and data logs
+*.log
+data_history*.log
+data.dbf
+
+# OS and Editor
+.DS_Store
+Thumbs.db
+.env
+.env.local

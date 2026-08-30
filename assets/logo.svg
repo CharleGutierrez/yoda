@@ -1,0 +1,190 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 300" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradients -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#080d1a"/>
+      <stop offset="50%" stop-color="#0e1726"/>
+      <stop offset="100%" stop-color="#050811"/>
+    </linearGradient>
+
+    <!-- Neon Green / Cyber Gradients -->
+    <linearGradient id="cyberGreen" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00FFA3"/>
+      <stop offset="50%" stop-color="#00D2FF"/>
+      <stop offset="100%" stop-color="#00FF88"/>
+    </linearGradient>
+
+    <linearGradient id="accentCyan" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00FFA3"/>
+      <stop offset="100%" stop-color="#38BDF8"/>
+    </linearGradient>
+
+    <linearGradient id="goldAccent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FCD34D"/>
+      <stop offset="100%" stop-color="#F59E0B"/>
+    </linearGradient>
+
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1E293B" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#0F172A" stop-opacity="0.95"/>
+    </linearGradient>
+
+    <!-- Glow Filters -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <filter id="subtleGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background Canvas -->
+  <rect width="960" height="300" rx="20" fill="url(#bgGrad)" stroke="#1E293B" stroke-width="2"/>
+
+  <!-- Subtle Cyber Grid Background -->
+  <g opacity="0.12" stroke="#00FFA3" stroke-width="0.8">
+    <line x1="40" y1="50" x2="920" y2="50"/>
+    <line x1="40" y1="100" x2="920" y2="100"/>
+    <line x1="40" y1="150" x2="920" y2="150"/>
+    <line x1="40" y1="200" x2="920" y2="200"/>
+    <line x1="40" y1="250" x2="920" y2="250"/>
+    <line x1="120" y1="20" x2="120" y2="280"/>
+    <line x1="240" y1="20" x2="240" y2="280"/>
+    <line x1="360" y1="20" x2="360" y2="280"/>
+    <line x1="480" y1="20" x2="480" y2="280"/>
+    <line x1="600" y1="20" x2="600" y2="280"/>
+    <line x1="720" y1="20" x2="720" y2="280"/>
+    <line x1="840" y1="20" x2="840" y2="280"/>
+  </g>
+
+  <!-- Ambient Light Orbs -->
+  <circle cx="160" cy="150" r="90" fill="#00FFA3" opacity="0.08" filter="url(#glow)"/>
+  <circle cx="600" cy="140" r="130" fill="#00D2FF" opacity="0.05" filter="url(#glow)"/>
+
+  <!-- ==================== LEFT EMBLEM: YODA CYBER-HEAD & DATA BRIDGE ==================== -->
+  <g transform="translate(45, 25)">
+    <!-- Outer Shield / Hexagonal Frame -->
+    <polygon points="115,10 200,60 200,190 115,240 30,190 30,60" fill="url(#shieldGrad)" stroke="url(#cyberGreen)" stroke-width="2.5" filter="url(#subtleGlow)"/>
+
+    <!-- Circuit Connection Nodes (BEAM + Rust Concurrency) -->
+    <line x1="115" y1="10" x2="115" y2="45" stroke="#00FFA3" stroke-width="2" stroke-dasharray="3,3"/>
+    <line x1="30" y1="125" x2="65" y2="125" stroke="#00D2FF" stroke-width="2"/>
+    <line x1="200" y1="125" x2="165" y2="125" stroke="#00D2FF" stroke-width="2"/>
+
+    <!-- Left Cyber Ear (Data Ingestion Antenna) -->
+    <path d="M 70 95 L 20 80 L 10 95 L 60 120 Z" fill="#00FFA3" fill-opacity="0.3" stroke="#00FFA3" stroke-width="2" filter="url(#subtleGlow)"/>
+    <line x1="10" y1="95" x2="4" y2="75" stroke="#00FFA3" stroke-width="2.5"/>
+    <circle cx="4" cy="75" r="3.5" fill="#00FFA3" filter="url(#glow)"/>
+
+    <!-- Right Cyber Ear (Telemetry Emitter Antenna) -->
+    <path d="M 160 95 L 210 80 L 220 95 L 170 120 Z" fill="#00FFA3" fill-opacity="0.3" stroke="#00FFA3" stroke-width="2" filter="url(#subtleGlow)"/>
+    <line x1="220" y1="95" x2="226" y2="75" stroke="#00FFA3" stroke-width="2.5"/>
+    <circle cx="226" cy="75" r="3.5" fill="#00FFA3" filter="url(#glow)"/>
+
+    <!-- Stylized Yoda Cyber Brow & Cranium -->
+    <path d="M 65 85 Q 115 50 165 85 L 155 125 L 115 155 L 75 125 Z" fill="#111D33" stroke="url(#cyberGreen)" stroke-width="2.2"/>
+    
+    <!-- Glowing Forehead Telemetry Lines (Wisdom Nodes) -->
+    <path d="M 85 80 Q 115 65 145 80" fill="none" stroke="#00FFA3" stroke-width="2" opacity="0.8"/>
+    <path d="M 95 92 Q 115 80 135 92" fill="none" stroke="#00D2FF" stroke-width="2" opacity="0.9"/>
+
+    <!-- Glowing Cyber Eyes (Anomaly Detection Lenses) -->
+    <polygon points="80,110 100,105 95,116 82,117" fill="#00FFA3" filter="url(#glow)"/>
+    <polygon points="150,110 130,105 135,116 148,117" fill="#00FFA3" filter="url(#glow)"/>
+    <circle cx="90" cy="111" r="2" fill="#FFFFFF"/>
+    <circle cx="140" cy="111" r="2" fill="#FFFFFF"/>
+
+    <!-- Central Telemetry Waveform / Bridge Stream -->
+    <path d="M 115 130 L 115 160 L 105 170 L 125 180 L 115 190 L 115 220" fill="none" stroke="url(#cyberGreen)" stroke-width="2.5" filter="url(#subtleGlow)"/>
+
+    <!-- Legacy Database Disks (.DBF / ODBC Base) -->
+    <g transform="translate(75, 195)">
+      <!-- Disk 1 -->
+      <ellipse cx="40" cy="10" rx="38" ry="9" fill="#1E293B" stroke="#00FFA3" stroke-width="1.8"/>
+      <!-- Disk 2 -->
+      <ellipse cx="40" cy="20" rx="38" ry="9" fill="#0F172A" stroke="#00D2FF" stroke-width="1.8"/>
+      <!-- Real-time Pulse Nodes -->
+      <circle cx="15" cy="20" r="2.5" fill="#00FFA3" filter="url(#glow)"/>
+      <circle cx="40" cy="20" r="2.5" fill="#00D2FF" filter="url(#glow)"/>
+      <circle cx="65" cy="20" r="2.5" fill="#00FFA3" filter="url(#glow)"/>
+    </g>
+
+    <!-- Radiating Data Packets -->
+    <circle cx="115" cy="45" r="3" fill="#00FFA3" filter="url(#glow)"/>
+    <circle cx="65" cy="125" r="3" fill="#00D2FF" filter="url(#glow)"/>
+    <circle cx="165" cy="125" r="3" fill="#00D2FF" filter="url(#glow)"/>
+  </g>
+
+  <!-- ==================== RIGHT CONTENT: TYPOGRAPHY & BADGES ==================== -->
+  <g transform="translate(305, 0)">
+    <!-- Project Title -->
+    <text x="0" y="118" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="78" font-weight="900" letter-spacing="12" fill="url(#cyberGreen)" filter="url(#subtleGlow)">
+      YODA
+    </text>
+
+    <!-- Subtitle / Mission Tagline -->
+    <text x="5" y="156" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="14.5" font-weight="700" letter-spacing="2.5" fill="#94A3B8">
+      REAL-TIME LEGACY DATA BRIDGE &amp; TELEMETRY PLATFORM
+    </text>
+
+    <text x="5" y="180" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="500" letter-spacing="1" fill="#64748B">
+      Sub-millisecond DBF/ODBC OS Ingestion • Mist/Wisp BEAM Engine • Lustre Reactive UI
+    </text>
+
+    <!-- Tech Stack Pill Badges -->
+    <g transform="translate(0, 208)">
+      <!-- Gleam Badge -->
+      <g transform="translate(0, 0)">
+        <rect width="90" height="28" rx="6" fill="#1E293B" stroke="#ffaff3" stroke-width="1.2"/>
+        <text x="45" y="18" font-family="monospace" font-size="11.5" font-weight="700" fill="#ffaff3" text-anchor="middle">GLEAM</text>
+      </g>
+
+      <!-- Erlang/OTP Badge -->
+      <g transform="translate(98, 0)">
+        <rect width="112" height="28" rx="6" fill="#1E293B" stroke="#A90533" stroke-width="1.2"/>
+        <text x="56" y="18" font-family="monospace" font-size="11.5" font-weight="700" fill="#EF4444" text-anchor="middle">ERLANG / OTP</text>
+      </g>
+
+      <!-- Rust NIF Badge -->
+      <g transform="translate(218, 0)">
+        <rect width="98" height="28" rx="6" fill="#1E293B" stroke="#DEA584" stroke-width="1.2"/>
+        <text x="49" y="18" font-family="monospace" font-size="11.5" font-weight="700" fill="#F97316" text-anchor="middle">RUST NIF</text>
+      </g>
+
+      <!-- Lustre UI Badge -->
+      <g transform="translate(324, 0)">
+        <rect width="95" height="28" rx="6" fill="#1E293B" stroke="#00FFA3" stroke-width="1.2"/>
+        <text x="47" y="18" font-family="monospace" font-size="11.5" font-weight="700" fill="#00FFA3" text-anchor="middle">LUSTRE TEA</text>
+      </g>
+
+      <!-- Glint CLI Badge -->
+      <g transform="translate(427, 0)">
+        <rect width="88" height="28" rx="6" fill="#1E293B" stroke="#38BDF8" stroke-width="1.2"/>
+        <text x="44" y="18" font-family="monospace" font-size="11.5" font-weight="700" fill="#38BDF8" text-anchor="middle">GLINT CLI</text>
+      </g>
+
+      <!-- AI / OpenAI Badge -->
+      <g transform="translate(523, 0)">
+        <rect width="98" height="28" rx="6" fill="#1E293B" stroke="#10B981" stroke-width="1.2"/>
+        <text x="49" y="18" font-family="monospace" font-size="11.5" font-weight="700" fill="#10B981" text-anchor="middle">AI GATEWAY</text>
+      </g>
+    </g>
+
+    <!-- Version & Status Indicator -->
+    <g transform="translate(510, 85)">
+      <rect width="112" height="24" rx="12" fill="#064E3B" stroke="#059669" stroke-width="1"/>
+      <circle cx="16" cy="12" r="4.5" fill="#10B981" filter="url(#glow)"/>
+      <text x="28" y="16" font-family="monospace" font-size="10.5" font-weight="700" fill="#6EE7B7">v1.0.0 STABLE</text>
+    </g>
+  </g>
+</svg>
