@@ -16,7 +16,7 @@ pub fn fetch_history(on_history: fn(String) -> Nil) -> Nil
 @external(javascript, "./ui/ffi.mjs", "start_resource_polling")
 pub fn start_resource_polling(on_res: fn(String) -> Nil) -> Nil
 
-fn init(_) {
+pub fn init(_) {
   let init_effect = effect.from(fn(dispatch) {
     fetch_history(fn(history) {
       dispatch(UpdateHFT(history))
@@ -47,7 +47,7 @@ pub type Msg {
   UpdateSystemResources(String)
 }
 
-fn update(model: Model, msg: Msg) {
+pub fn update(model: Model, msg: Msg) {
   case msg {
     UpdateHFT(data) -> {
       let new_data = case model.hft_data {
@@ -79,7 +79,7 @@ fn update(model: Model, msg: Msg) {
   }
 }
 
-fn view(model: Model) {
+pub fn view(model: Model) {
   dashboard.dashboard_view(
     model.hft_data, 
     model.ai_insight,

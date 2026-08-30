@@ -25,6 +25,10 @@ init() ->
             ets:insert(?POOLS_TABLE, {<<"scylla_cassandra">>, [{active, 24}, {idle, 8}, {max, 100}, {status, <<"cql_ready">>}]});
         _ -> ok
     end,
+    mongo_engine:init(),
+    elastic_engine:init(),
+    olap_engine:init(),
+    cassandra_engine:init(),
     ok.
 
 list_engines() ->
@@ -58,13 +62,13 @@ execute_query(EngineBin, QueryBin) ->
         "oracle" ->
             execute_sql_route("Oracle", QueryBin);
         "mongodb" ->
-            execute_mongo_query(QueryBin);
+            mongo_engine:execute_mongo(QueryBin);
         "elasticsearch" ->
-            execute_elastic_query(QueryBin);
+            elastic_engine:execute_search(QueryBin);
         "snowflake" ->
-            execute_olap_query(QueryBin);
+            olap_engine:execute_olap(QueryBin);
         "scylla_cassandra" ->
-            execute_cql_query(QueryBin);
+            cassandra_engine:execute_cql(QueryBin);
         _ ->
             list_to_binary(io_lib:format("{\"error\":\"Unknown database engine: ~s\"}", [Engine]))
     end.
@@ -121,25 +125,6 @@ execute_redis_command(CommandBin) ->
             <<"{\"result\":\"PONG\"}">>
     end.
 
-execute_mongo_query(QueryBin) ->
-    QueryStr = binary_to_list(QueryBin),
-    list_to_binary(io_lib:format("{\"collection\":\"telemetry_events\",\"matched\":1,\"document\":{\"filter\":\"~s\",\"status\":\"indexed\"}}", [escape_json(QueryStr)])).
-
-execute_elastic_query(QueryBin) ->
-    QueryStr = binary_to_list(QueryBin),
-    list_to_binary(io_lib:format("{\"took_ms\":2,\"hits\":{\"total\":1,\"hits\":[{\"_index\":\"yoda_logs\",\"_source\":{\"query\":\"~s\",\"timestamp\":~p}}]}}",
-                                 [escape_json(QueryStr), erlang:system_time(second)])).
-
-execute_olap_query(QueryBin) ->
-    QueryStr = binary_to_list(QueryBin),
-    list_to_binary(io_lib:format("{\"olap_engine\":\"Snowflake/ClickHouse\",\"scanned_bytes\":1048576,\"query\":\"~s\",\"rows\":[{\"aggregation_val\":99.98,\"window\":\"1h\"}]}",
-                                 [escape_json(QueryStr)])).
-
-execute_cql_query(QueryBin) ->
-    QueryStr = binary_to_list(QueryBin),
-    list_to_binary(io_lib:format("{\"keyspace\":\"yoda_timeseries\",\"consistency\":\"LOCAL_QUORUM\",\"cql\":\"~s\",\"status\":\"applied\"}",
-                                 [escape_json(QueryStr)])).
-
 get_pool_stats() ->
     Pools = ets:tab2list(?POOLS_TABLE),
     JsonList = [ format_pool_json(P) || P <- Pools ],
@@ -152,13 +137,3 @@ format_pool_json({Engine, Props}) ->
     Status = proplists:get_value(status, Props, <<"active">>),
     io_lib:format("{\"engine\":\"~s\",\"active\":~p,\"idle\":~p,\"max\":~p,\"status\":\"~s\"}",
                   [binary_to_list(Engine), Active, Idle, Max, binary_to_list(Status)]).
-
-escape_json(Str) ->
-    lists:flatmap(fun
-        ($\") -> "\\\"";
-        ($\\) -> "\\\\";
-        ($\n) -> "\\n";
-        ($\r) -> "\\r";
-        ($\t) -> "\\t";
-        (C) -> [C]
-    end, Str).

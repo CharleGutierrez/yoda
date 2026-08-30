@@ -79,6 +79,10 @@ pub fn crdt_sync_state(json: String) -> String
 @external(erlang, "cli_ffi", "get_argv")
 pub fn get_argv() -> List(String)
 
+@external(erlang, "cli_ffi", "replay")
+pub fn replay_events(limit: String) -> String
+
+
 pub fn main() {
   let app =
     glint.new()
@@ -346,6 +350,20 @@ pub fn main() {
             case args {
               [anomaly, ..] -> io.println(ai_diagnose(anomaly))
               _ -> io.println("Usage: yoda diagnose <anomaly_text>")
+            }
+          })
+        },
+      ),
+    )
+    |> glint.add(
+      at: ["replay"],
+      do: glint.command_help(
+        "Replay historical telemetry incidents for time-travel analysis",
+        fn() {
+          glint.command(fn(_named, args, _flags) {
+            case args {
+              [limit, ..] -> io.println(replay_events(limit))
+              _ -> io.println(replay_events("100"))
             }
           })
         },

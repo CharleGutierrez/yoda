@@ -19,8 +19,33 @@ diagnose_anomaly(AnomalyTextBin, ApiKeyBin) ->
 
 local_heuristic_diagnostic(AnomalyTextBin) ->
     AnomalyStr = binary_to_list(AnomalyTextBin),
-    Insight = "Autonomous AI Diagnostic: High telemetry spike (>80) detected in stream (" ++ AnomalyStr ++ "). Potential bufferbloat, I/O saturation, or transducer voltage surge. Recommend immediate rate throttling and sensor calibration.",
-    list_to_binary("{\"diagnostic\":\"" ++ escape_json(Insight) ++ "\",\"status\":\"heuristic_ai_active\"}").
+    case re:run(AnomalyStr, "([0-9]+\\.?[0-9]*)", [global, {capture, [1], list}]) of
+        {match, Matches} ->
+            Values = lists:filtermap(fun([NumStr]) ->
+                case string:to_float(NumStr) of
+                    {F, []} -> {true, F};
+                    _ ->
+                        case string:to_integer(NumStr) of
+                            {I, []} -> {true, float(I)};
+                            _ -> false
+                        end
+                end
+            end, Matches),
+            case Values of
+                [] ->
+                    list_to_binary("{\"diagnostic\":\"" ++ escape_json("Anomaly detected, but no metric values found.") ++ "\",\"status\":\"heuristic_ai_active\"}");
+                _ ->
+                    MaxVal = lists:max(Values),
+                    Insight = if
+                        MaxVal > 95.0 -> "Critical Failure Warning! Metric exceeded 95.0 limit (" ++ lists:flatten(io_lib:format("~.2f", [MaxVal])) ++ "). Recommend immediate shutdown and physical inspection.";
+                        MaxVal > 90.0 -> "Severe Anomaly: Metric spike (" ++ lists:flatten(io_lib:format("~.2f", [MaxVal])) ++ "). Recommend reducing load to prevent transducer damage.";
+                        true -> "Elevated Telemetry (" ++ lists:flatten(io_lib:format("~.2f", [MaxVal])) ++ "). Potential bufferbloat or minor voltage surge. Monitor closely."
+                    end,
+                    list_to_binary("{\"diagnostic\":\"" ++ escape_json(lists:flatten(Insight)) ++ "\",\"status\":\"heuristic_ai_active\"}")
+            end;
+        nomatch ->
+            list_to_binary("{\"diagnostic\":\"" ++ escape_json("Unknown anomaly format.") ++ "\",\"status\":\"heuristic_ai_active\"}")
+    end.
 
 escape_json(Str) ->
     lists:flatmap(fun

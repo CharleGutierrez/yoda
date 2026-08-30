@@ -262,11 +262,8 @@ pub fn main() {
               }
               ["api", "db", "query"] -> {
                 use req_body <- wisp.require_string_body(req)
-                let engine = case request.get_query(req) {
-                  Ok(queries) -> case list.key_find(queries, "engine") {
-                    Ok(e) -> e
-                    Error(_) -> "sqlite"
-                  }
+                let engine = case list.key_find(wisp.get_query(req), "engine") {
+                  Ok(e) -> e
                   Error(_) -> "sqlite"
                 }
                 let result = db_execute_query(engine, string.trim(req_body))
@@ -298,11 +295,8 @@ pub fn main() {
                 wisp.json_response(json, 200)
               }
               ["api", "export"] -> {
-                case request.get_query(req) {
-                  Ok(queries) -> case list.key_find(queries, "format") {
-                    Ok("json") -> wisp.json_response(export_json_data(), 200)
-                    _ -> wisp.html_response(export_csv_data(), 200)
-                  }
+                case list.key_find(wisp.get_query(req), "format") {
+                  Ok("json") -> wisp.json_response(export_json_data(), 200)
                   _ -> wisp.html_response(export_csv_data(), 200)
                 }
               }
