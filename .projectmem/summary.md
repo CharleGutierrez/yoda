@@ -6,7 +6,7 @@ _Last updated: 2026-08-30_
 Yoda is a full-stack real-time data bridge and monitoring platform built in Gleam, Erlang/OTP, and Rust. It bridges legacy data sources (dBase/DBF files and ODBC databases) with modern web dashboards, high-frequency UDP/WebSocket streaming, automated anomaly detection, webhook alerting, AI-driven insights via LLM proxies, and a companion CLI administration tool.
 
 ## Recent issues
-- No issues logged yet.
+- [DONE] #0001 Tests are fake and REST endpoints are entirely unauthenticated/vulnerable to SQL injection [server/src/server.gleam] -> Replaced boilerplate/fake tests with genuine tests in server and cli. Enforced authentication and proper HTTP methods (POST) on REST endpoints to fix security vulnerabilities. (fixed)
 
 ## Decisions
 - Architecture: Yoda is split into 4 components - `core_bridge` (Rust NIFs), `server` (Gleam/Erlang server), `client` (Lustre SPA), and `cli` (Glint admin tool).

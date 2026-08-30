@@ -34,6 +34,18 @@ pub fn audit_verify() -> String
 @external(erlang, "cli_ffi", "diagnose")
 pub fn ai_diagnose(anomaly: String) -> String
 
+@external(erlang, "cli_ffi", "stats")
+pub fn get_stats() -> String
+
+@external(erlang, "cli_ffi", "forecast")
+pub fn get_forecast() -> String
+
+@external(erlang, "cli_ffi", "export_data")
+pub fn export_telemetry(format: String) -> String
+
+@external(erlang, "cli_ffi", "watch_dashboard")
+pub fn watch_live_dashboard() -> String
+
 @external(erlang, "cli_ffi", "get_argv")
 pub fn get_argv() -> List(String)
 
@@ -53,7 +65,43 @@ pub fn main() {
       at: ["version"],
       do: glint.command_help(
         "Prints CLI version",
-        fn() { glint.command(fn(_, _, _) { io.println("Yoda CLI version 1.0.0 (Hardened)") }) },
+        fn() { glint.command(fn(_, _, _) { io.println("Yoda CLI version 1.1.0 (Enterprise)") }) },
+      ),
+    )
+    |> glint.add(
+      at: ["stats"],
+      do: glint.command_help(
+        "Show rolling in-memory time-series statistics (min, max, avg, stddev, p95, p99)",
+        fn() { glint.command(fn(_, _, _) { io.println(get_stats()) }) },
+      ),
+    )
+    |> glint.add(
+      at: ["forecast"],
+      do: glint.command_help(
+        "Show real-time trend regression and telemetry forecasting",
+        fn() { glint.command(fn(_, _, _) { io.println(get_forecast()) }) },
+      ),
+    )
+    |> glint.add(
+      at: ["export"],
+      do: glint.command_help(
+        "Export telemetry stream to CSV or JSON format",
+        fn() {
+          glint.command(fn(_named, args, _flags) {
+            let fmt = case args {
+              [f, ..] -> f
+              _ -> "csv"
+            }
+            io.println(export_telemetry(fmt))
+          })
+        },
+      ),
+    )
+    |> glint.add(
+      at: ["watch"],
+      do: glint.command_help(
+        "Launch real-time live terminal monitoring dashboard",
+        fn() { glint.command(fn(_, _, _) { io.println(watch_live_dashboard()) }) },
       ),
     )
     |> glint.add(
@@ -87,7 +135,7 @@ pub fn main() {
     |> glint.add(
       at: ["test-webhook"],
       do: glint.command_help(
-        "Send a test webhook payload to a URL",
+        "Send a test webhook payload to a Discord, Slack, or REST URL",
         fn() {
           glint.command(fn(_named, args, _flags) {
             case args {

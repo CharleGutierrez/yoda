@@ -44,7 +44,9 @@ handle_info({udp, _Socket, _IP, _InPort, Packet}, State) ->
     file_helper_ffi:append_log(<<"data_history.log">>, Msg),
     % 2. Record to cryptographic audit chain
     crypto_audit:add_block(Msg),
-    % 3. Broadcast to all active WebSocket clients in real time
+    % 3. Record to in-memory time-series store
+    timeseries_store:record_raw(Msg),
+    % 4. Broadcast to all active WebSocket clients in real time
     ws_broadcaster:broadcast(Msg),
     {noreply, State};
 handle_info(_Info, State) ->

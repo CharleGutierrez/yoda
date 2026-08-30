@@ -33,8 +33,8 @@ pub fn rate_limit_check(ip: String, limit: Int) -> Bool
 @external(erlang, "rate_limiter", "reset_ip")
 pub fn rate_limit_reset(ip: String) -> Nil
 
-@external(erlang, "webhook_helper", "dispatch")
-pub fn dispatch_webhook(url: String, payload: String) -> Nil
+@external(erlang, "webhook_router", "dispatch_alert")
+pub fn dispatch_webhook_alert(url: String, alert_msg: String, diagnostic: String) -> Nil
 
 @external(erlang, "log_rotator", "start")
 pub fn start_log_rotator() -> Nil
@@ -81,6 +81,30 @@ pub fn crypto_audit_verify() -> Bool
 @external(erlang, "crypto_audit", "get_block_count")
 pub fn crypto_audit_count() -> Int
 
+@external(erlang, "timeseries_store", "init")
+pub fn init_timeseries_store() -> Nil
+
+@external(erlang, "timeseries_store", "record_raw")
+pub fn timeseries_record_raw(msg: String) -> Nil
+
+@external(erlang, "timeseries_store", "get_timeseries_json")
+pub fn timeseries_get_json(window_seconds: Int) -> String
+
+@external(erlang, "timeseries_store", "get_stats_json")
+pub fn timeseries_get_stats() -> String
+
+@external(erlang, "timeseries_store", "get_total_points")
+pub fn timeseries_total_points() -> Int
+
+@external(erlang, "anomaly_engine", "get_forecast_json")
+pub fn anomaly_get_forecast() -> String
+
+@external(erlang, "export_engine", "export_csv")
+pub fn export_csv_data() -> String
+
+@external(erlang, "export_engine", "export_json")
+pub fn export_json_data() -> String
+
 @external(erlang, "udp_receiver", "start")
 pub fn start_udp_receiver(port: Int) -> Nil
 
@@ -96,6 +120,7 @@ pub fn main() {
   init_active_users()
   init_ws_broadcaster()
   init_crypto_audit()
+  init_timeseries_store()
   start_log_rotator()
   
   let udp_port = case os_helper.get_env("HFT_DEST_PORT") {
@@ -129,12 +154,14 @@ pub fn main() {
         let mem = get_memory_total()
         let cpu = get_cpu_time()
         let blocks = crypto_audit_count()
+        let ts_points = timeseries_total_points()
         let metrics_text = 
           "# HELP yoda_uptime Server uptime in seconds\n# TYPE yoda_uptime gauge\nyoda_uptime " <> int.to_string(uptime_val) <> "\n"
           <> "# HELP yoda_active_websockets Active WebSocket client connections\n# TYPE yoda_active_websockets gauge\nyoda_active_websockets " <> int.to_string(active_ws) <> "\n"
           <> "# HELP yoda_memory_bytes Total BEAM VM allocated memory\n# TYPE yoda_memory_bytes gauge\nyoda_memory_bytes " <> int.to_string(mem) <> "\n"
           <> "# HELP yoda_cpu_time Total CPU runtime\n# TYPE yoda_cpu_time counter\nyoda_cpu_time " <> int.to_string(cpu) <> "\n"
           <> "# HELP yoda_audit_blocks_total Total cryptographic audit chain ledger blocks\n# TYPE yoda_audit_blocks_total counter\nyoda_audit_blocks_total " <> int.to_string(blocks) <> "\n"
+          <> "# HELP yoda_timeseries_points_total In-memory time-series data points\n# TYPE yoda_timeseries_points_total gauge\nyoda_timeseries_points_total " <> int.to_string(ts_points) <> "\n"
         wisp.html_response(metrics_text, 200)
       }
       _ -> {
@@ -148,6 +175,27 @@ pub fn main() {
                 let uptime_val = os_helper.system_time_seconds() - start_time
                 let dyn_val = int.to_string(uptime_val)
                 wisp.json_response("{\"status\":\"healthy\",\"uptime\":" <> dyn_val <> "}", 200)
+              }
+              ["api", "stats"] -> {
+                let stats = timeseries_get_stats()
+                wisp.json_response(stats, 200)
+              }
+              ["api", "timeseries"] -> {
+                let json = timeseries_get_json(60)
+                wisp.json_response(json, 200)
+              }
+              ["api", "forecast"] -> {
+                let json = anomaly_get_forecast()
+                wisp.json_response(json, 200)
+              }
+              ["api", "export"] -> {
+                case request.get_query(req) {
+                  Ok(queries) -> case list.key_find(queries, "format") {
+                    Ok("json") -> wisp.json_response(export_json_data(), 200)
+                    _ -> wisp.html_response(export_csv_data(), 200)
+                  }
+                  _ -> wisp.html_response(export_csv_data(), 200)
+                }
               }
               ["api", "ai_insights"] -> {
                 use req_body <- wisp.require_string_body(req)
@@ -216,7 +264,7 @@ pub fn main() {
               ["api", "test_webhook"] -> {
                 use req_body <- wisp.require_string_body(req)
                 let url = string.trim(req_body)
-                dispatch_webhook(url, "{\"alert\": \"Yoda Test Anomaly\"}")
+                dispatch_webhook_alert(url, "Yoda Anomaly Test Trigger", "Synthetic test alert verified via Yoda Sentinel")
                 wisp.json_response("{\"status\":\"dispatched\"}", 200)
               }
               ["api", "active_users"] -> {
@@ -285,6 +333,7 @@ pub fn main() {
                     let _ = mist.send_text_frame(conn, msg)
                     file_helper.append_log("data_history.log", msg)
                     let _ = crypto_audit_add(msg)
+                    timeseries_record_raw(msg)
                     let _ = ws_broadcast(msg)
                     mist.continue(subj)
                   }
@@ -293,6 +342,7 @@ pub fn main() {
                     let _ = mist.send_text_frame(conn, msg)
                     file_helper.append_log("data_history.log", msg)
                     let _ = crypto_audit_add(msg)
+                    timeseries_record_raw(msg)
                     let _ = ws_broadcast(msg)
                     case is_anomaly(msg) {
                       True -> {
@@ -303,8 +353,7 @@ pub fn main() {
                               Error(_) -> "no_key"
                             }
                             let diag = ai_diagnose_anomaly(msg, key)
-                            let payload = "{\"alert\":\"Anomaly detected\",\"message\":\"" <> string.replace(msg, "\"", "\\\"") <> "\",\"diagnostic\":" <> diag <> "}"
-                            dispatch_webhook(url, payload)
+                            dispatch_webhook_alert(url, msg, diag)
                           }
                           Error(_) -> Nil
                         }

@@ -1,6 +1,7 @@
 -module(cli_ffi).
 -export([status/0, anomalies/0, top/0, unban/1, test_webhook/1, archive/0, get_argv/0,
-         odbc_connect/1, odbc_query/1, audit_chain/0, audit_verify/0, diagnose/1]).
+         odbc_connect/1, odbc_query/1, audit_chain/0, audit_verify/0, diagnose/1,
+         stats/0, forecast/0, export_data/1, watch_dashboard/0]).
 
 get_base_url() ->
     case os:getenv("YODA_SERVER_URL") of
@@ -16,36 +17,55 @@ status() ->
     inets:start(),
     Base = get_base_url(),
     case httpc:request(get, {Base ++ "/api/status", []}, [], []) of
-        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, Body}} ->
-            list_to_binary(Body);
-        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _Body}} ->
-            list_to_binary("Error: " ++ integer_to_list(Code));
-        {error, _} ->
-            <<"Error connecting to server">>
+        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, Body}} -> list_to_binary(Body);
+        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _Body}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
+    end.
+
+stats() ->
+    inets:start(),
+    Base = get_base_url(),
+    case httpc:request(get, {Base ++ "/api/stats", []}, [], []) of
+        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, Body}} -> list_to_binary(Body);
+        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _Body}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
+    end.
+
+forecast() ->
+    inets:start(),
+    Base = get_base_url(),
+    case httpc:request(get, {Base ++ "/api/forecast", []}, [], []) of
+        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, Body}} -> list_to_binary(Body);
+        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _Body}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
+    end.
+
+export_data(Format) ->
+    inets:start(),
+    Base = get_base_url(),
+    Url = Base ++ "/api/export?format=" ++ binary_to_list(Format),
+    case httpc:request(get, {Url, []}, [], []) of
+        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, Body}} -> list_to_binary(Body);
+        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _Body}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
     end.
 
 anomalies() ->
     inets:start(),
     Base = get_base_url(),
     case httpc:request(get, {Base ++ "/api/anomalies", []}, [], []) of
-        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, Body}} ->
-            list_to_binary(Body);
-        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _Body}} ->
-            list_to_binary("Error: " ++ integer_to_list(Code));
-        {error, _} ->
-            <<"Error connecting to server">>
+        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, Body}} -> list_to_binary(Body);
+        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _Body}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
     end.
 
 top() ->
     inets:start(),
     Base = get_base_url(),
     case httpc:request(get, {Base ++ "/api/system_resources", []}, [], []) of
-        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, Body}} ->
-            list_to_binary(Body);
-        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _Body}} ->
-            list_to_binary("Error: " ++ integer_to_list(Code));
-        {error, _} ->
-            <<"Error connecting to server">>
+        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, Body}} -> list_to_binary(Body);
+        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _Body}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
     end.
 
 unban(IP) ->
@@ -53,12 +73,9 @@ unban(IP) ->
     Base = get_base_url(),
     Body = binary_to_list(IP),
     case httpc:request(post, {Base ++ "/api/unban", [], "text/plain", Body}, [], []) of
-        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, RespBody}} ->
-            list_to_binary(RespBody);
-        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _RespBody}} ->
-            list_to_binary("Error: " ++ integer_to_list(Code));
-        {error, _} ->
-            <<"Error connecting to server">>
+        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, RespBody}} -> list_to_binary(RespBody);
+        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _RespBody}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
     end.
 
 test_webhook(Url) ->
@@ -66,24 +83,18 @@ test_webhook(Url) ->
     Base = get_base_url(),
     Body = binary_to_list(Url),
     case httpc:request(post, {Base ++ "/api/test_webhook", [], "text/plain", Body}, [], []) of
-        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, RespBody}} ->
-            list_to_binary(RespBody);
-        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _RespBody}} ->
-            list_to_binary("Error: " ++ integer_to_list(Code));
-        {error, _} ->
-            <<"Error connecting to server">>
+        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, RespBody}} -> list_to_binary(RespBody);
+        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _RespBody}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
     end.
 
 archive() ->
     inets:start(),
     Base = get_base_url(),
     case httpc:request(post, {Base ++ "/api/archive", [], "text/plain", ""}, [], []) of
-        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, RespBody}} ->
-            list_to_binary(RespBody);
-        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _RespBody}} ->
-            list_to_binary("Error: " ++ integer_to_list(Code));
-        {error, _} ->
-            <<"Error connecting to server">>
+        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, RespBody}} -> list_to_binary(RespBody);
+        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _RespBody}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
     end.
 
 odbc_connect(ConnStr) ->
@@ -91,12 +102,9 @@ odbc_connect(ConnStr) ->
     Base = get_base_url(),
     Body = binary_to_list(ConnStr),
     case httpc:request(post, {Base ++ "/api/odbc_connect", [], "text/plain", Body}, [], []) of
-        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, RespBody}} ->
-            list_to_binary(RespBody);
-        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _RespBody}} ->
-            list_to_binary("Error: " ++ integer_to_list(Code));
-        {error, _} ->
-            <<"Error connecting to server">>
+        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, RespBody}} -> list_to_binary(RespBody);
+        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _RespBody}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
     end.
 
 odbc_query(Query) ->
@@ -104,36 +112,27 @@ odbc_query(Query) ->
     Base = get_base_url(),
     Body = binary_to_list(Query),
     case httpc:request(post, {Base ++ "/api/odbc_query", [], "text/plain", Body}, [], []) of
-        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, RespBody}} ->
-            list_to_binary(RespBody);
-        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _RespBody}} ->
-            list_to_binary("Error: " ++ integer_to_list(Code));
-        {error, _} ->
-            <<"Error connecting to server">>
+        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, RespBody}} -> list_to_binary(RespBody);
+        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _RespBody}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
     end.
 
 audit_chain() ->
     inets:start(),
     Base = get_base_url(),
     case httpc:request(get, {Base ++ "/api/audit_chain", []}, [], []) of
-        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, Body}} ->
-            list_to_binary(Body);
-        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _Body}} ->
-            list_to_binary("Error: " ++ integer_to_list(Code));
-        {error, _} ->
-            <<"Error connecting to server">>
+        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, Body}} -> list_to_binary(Body);
+        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _Body}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
     end.
 
 audit_verify() ->
     inets:start(),
     Base = get_base_url(),
     case httpc:request(get, {Base ++ "/api/audit_verify", []}, [], []) of
-        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, Body}} ->
-            list_to_binary(Body);
-        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _Body}} ->
-            list_to_binary("Error: " ++ integer_to_list(Code));
-        {error, _} ->
-            <<"Error connecting to server">>
+        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, Body}} -> list_to_binary(Body);
+        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _Body}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
     end.
 
 diagnose(AnomalyText) ->
@@ -141,13 +140,27 @@ diagnose(AnomalyText) ->
     Base = get_base_url(),
     Body = binary_to_list(AnomalyText),
     case httpc:request(post, {Base ++ "/api/ai_diagnose", [], "text/plain", Body}, [], []) of
-        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, RespBody}} ->
-            list_to_binary(RespBody);
-        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _RespBody}} ->
-            list_to_binary("Error: " ++ integer_to_list(Code));
-        {error, _} ->
-            <<"Error connecting to server">>
+        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, RespBody}} -> list_to_binary(RespBody);
+        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _RespBody}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
     end.
+
+watch_dashboard() ->
+    io:format("\033[2J\033[H"),
+    io:format("╔══════════════════════════════════════════════════════════════════════╗~n"),
+    io:format("║         YODA SENTINEL - REAL-TIME TERMINAL TELEMETRY MONITOR         ║~n"),
+    io:format("╚══════════════════════════════════════════════════════════════════════╝~n"),
+    io:format("Connecting to ~s ...~n", [get_base_url()]),
+    Status = status(),
+    Stats = stats(),
+    Forecast = forecast(),
+    Audit = audit_verify(),
+    io:format("Server Status: ~s~n", [Status]),
+    io:format("Rolling Stats: ~s~n", [Stats]),
+    io:format("AI Forecast:   ~s~n", [Forecast]),
+    io:format("Ledger Proof:  ~s~n", [Audit]),
+    io:format("────────────────────────────────────────────────────────────────────────~n"),
+    <<"Live Monitor Finished">>.
 
 get_argv() ->
     Args = init:get_plain_arguments(),
