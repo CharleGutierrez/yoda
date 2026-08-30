@@ -4,7 +4,7 @@ import lustre/attribute.{class, attribute, value}
 import lustre/event.{on_input, on_click}
 
 // A sample Lustre component representing a Yoda Dashboard
-// This UI is hooked directly to Yoda's real-time streaming & cryptographic audit ledger
+// This UI is hooked directly to Yoda's real-time streaming, Multi-Database Hub & AI Optimizer-Tuner
 pub fn dashboard_view(
   live_hft_data: String, 
   ai_ephemeral_insight: String,
@@ -20,7 +20,7 @@ pub fn dashboard_view(
     
     // Header section
     header([class("dashboard-header")], [
-      h1([], [text("Yoda Enterprise Dashboard")]),
+      h1([], [text("Yoda Universal Multi-Database & Telemetry Sentinel")]),
       button([on_click(on_toggle_theme)], [text("Toggle Theme")]),
       p([class("status-indicator")], [
         text(connection_state)
@@ -28,14 +28,15 @@ pub fn dashboard_view(
     ]),
     
     div([class("system-resources-panel")], [
-      h2([], [text("Live System Resources")]),
-      p([], [text("CPU & Memory Metrics: " <> system_resources)])
+      h2([], [text("Live System & Database Pool Metrics")]),
+      p([], [text("CPU, Memory & Pool Gauges: " <> system_resources)])
     ]),
-    
-    // Real-Time Ingestion Grid hooked to Cryptographic Hash Chain & DBF/ODBC Streams
+
+    // Multi-Database Top 10 Hub
     div([class("grid-container")], [
-      h2([], [text("Live Cryptographic SHA-256 Audit Stream & Ingestion Grid")]),
-      button([attribute("onclick", "document.querySelector('live-data-chart').exportToCsv()")], [text("Export Data")]),
+      h2([], [text("Top 10 Universal Database Ingestion & Streaming Hub")]),
+      p([], [text("PostgreSQL (pgvector) • MySQL • MongoDB • Redis • SQLite • MSSQL • Oracle • Snowflake/ClickHouse • Elasticsearch • ScyllaDB")]),
+      button([attribute("onclick", "document.querySelector('live-data-chart').exportToCsv()")], [text("Export Telemetry (CSV)")]),
       element("live-data-chart", [
         attribute("data", live_hft_data)
       ], []),
@@ -44,15 +45,15 @@ pub fn dashboard_view(
       ], [])
     ]),
     
-    // AI Ephemeral UI Injection Panel
+    // AI Optimizer-Tuner & Anomaly Diagnostics Panel
     div([class("ai-gateway-panel")], [
-      h2([], [text("Autonomous AI Anomaly Diagnostics")]),
+      h2([], [text("Autonomous AI Database Optimizer-Tuner & Diagnostics")]),
       div([class("ai-chat-interface")], [
         input([
           value(ai_prompt),
           on_input(on_prompt_change)
         ]),
-        button([on_click(on_fetch_ai())], [text("Ask AI")])
+        button([on_click(on_fetch_ai())], [text("Tune Query / Ask AI")])
       ]),
       element("custom-calendar", [
         attribute("event-text", ai_ephemeral_insight)

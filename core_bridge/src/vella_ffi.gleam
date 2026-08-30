@@ -1,6 +1,9 @@
 @external(erlang, "vella_nif", "initialize")
 pub fn initialize() -> String
 
+@external(erlang, "vella_nif", "query_sqlite")
+pub fn query_sqlite(db_path: String, query: String) -> String
+
 @external(erlang, "vella_nif", "watch_legacy_dbf")
 pub fn watch_legacy_dbf(path: String) -> String
 

@@ -1,7 +1,8 @@
 -module(cli_ffi).
 -export([status/0, anomalies/0, top/0, unban/1, test_webhook/1, archive/0, get_argv/0,
          odbc_connect/1, odbc_query/1, audit_chain/0, audit_verify/0, diagnose/1,
-         stats/0, forecast/0, export_data/1, watch_dashboard/0]).
+         stats/0, forecast/0, export_data/1, watch_dashboard/0,
+         db_list/0, db_query/2, db_tune/1, db_stats/0]).
 
 get_base_url() ->
     case os:getenv("YODA_SERVER_URL") of
@@ -17,6 +18,46 @@ status() ->
     inets:start(),
     Base = get_base_url(),
     case httpc:request(get, {Base ++ "/api/status", []}, [], []) of
+        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, Body}} -> list_to_binary(Body);
+        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _Body}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
+    end.
+
+db_list() ->
+    inets:start(),
+    Base = get_base_url(),
+    case httpc:request(get, {Base ++ "/api/db/engines", []}, [], []) of
+        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, Body}} -> list_to_binary(Body);
+        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _Body}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
+    end.
+
+db_query(Engine, Query) ->
+    inets:start(),
+    Base = get_base_url(),
+    Url = Base ++ "/api/db/query?engine=" ++ binary_to_list(Engine),
+    Body = binary_to_list(Query),
+    case httpc:request(post, {Url, [], "text/plain", Body}, [], []) of
+        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, RespBody}} -> list_to_binary(RespBody);
+        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _RespBody}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
+    end.
+
+db_tune(Query) ->
+    inets:start(),
+    Base = get_base_url(),
+    Url = Base ++ "/api/db/tune",
+    Body = binary_to_list(Query),
+    case httpc:request(post, {Url, [], "text/plain", Body}, [], []) of
+        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, RespBody}} -> list_to_binary(RespBody);
+        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _RespBody}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
+    end.
+
+db_stats() ->
+    inets:start(),
+    Base = get_base_url(),
+    case httpc:request(get, {Base ++ "/api/db/pool_stats", []}, [], []) of
         {ok, {{_Version, 200, _ReasonPhrase}, _Headers, Body}} -> list_to_binary(Body);
         {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _Body}} -> list_to_binary("Error: " ++ integer_to_list(Code));
         {error, _} -> <<"Error connecting to server">>

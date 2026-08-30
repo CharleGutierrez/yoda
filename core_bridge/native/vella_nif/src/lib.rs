@@ -19,8 +19,50 @@ pub fn on_load(_env: Env, _info: Term) -> bool {
 
 #[rustler::nif]
 fn initialize() -> NifResult<String> {
-    let vella_info = format!("Vella OS Bridge v{} Active", env!("CARGO_PKG_VERSION"));
+    let vella_info = format!("Yoda Universal Multi-Database Bridge v{} Active", env!("CARGO_PKG_VERSION"));
     Ok(vella_info)
+}
+
+#[rustler::nif]
+fn query_sqlite(db_path: String, query: String) -> NifResult<String> {
+    let conn = if db_path.is_empty() || db_path == ":memory:" {
+        rusqlite::Connection::open_in_memory()
+    } else {
+        rusqlite::Connection::open(&db_path)
+    };
+
+    match conn {
+        Ok(conn) => {
+            let mut stmt = match conn.prepare(&query) {
+                Ok(s) => s,
+                Err(e) => return Ok(format!("{{\"error\":\"{}\"}}", e)),
+            };
+
+            let col_names: Vec<String> = stmt.column_names().into_iter().map(|s| s.to_string()).collect();
+
+            let rows_result: Result<Vec<serde_json::Value>, _> = stmt.query_map([], |row| {
+                let mut row_map = serde_json::Map::new();
+                for (idx, name) in col_names.iter().enumerate() {
+                    let val_json = match row.get_ref(idx) {
+                        Ok(rusqlite::types::ValueRef::Null) => serde_json::Value::Null,
+                        Ok(rusqlite::types::ValueRef::Integer(i)) => serde_json::Value::from(i),
+                        Ok(rusqlite::types::ValueRef::Real(f)) => serde_json::Value::from(f),
+                        Ok(rusqlite::types::ValueRef::Text(t)) => serde_json::Value::String(String::from_utf8_lossy(t).to_string()),
+                        Ok(rusqlite::types::ValueRef::Blob(b)) => serde_json::Value::String(format!("<blob {} bytes>", b.len())),
+                        Err(_) => serde_json::Value::Null,
+                    };
+                    row_map.insert(name.clone(), val_json);
+                }
+                Ok(serde_json::Value::Object(row_map))
+            }).and_then(|mapped| mapped.collect());
+
+            match rows_result {
+                Ok(rows) => Ok(serde_json::Value::Array(rows).to_string()),
+                Err(e) => Ok(format!("{{\"error\":\"{}\"}}", e)),
+            }
+        },
+        Err(e) => Ok(format!("{{\"error\":\"Failed to open SQLite: {}\"}}", e)),
+    }
 }
 
 #[rustler::nif]
@@ -173,4 +215,4 @@ fn broadcast_mutation(topic: String, path: String, status: String) -> NifResult<
     Ok(format!("HFT Broadcast successful to topic {}: {} ({})", topic, path, status))
 }
 
-rustler::init!("vella_nif", [initialize, watch_legacy_dbf, connect_legacy_odbc, query_legacy_odbc, broadcast_mutation], load = on_load);
+rustler::init!("vella_nif", [initialize, query_sqlite, watch_legacy_dbf, connect_legacy_odbc, query_legacy_odbc, broadcast_mutation], load = on_load);

@@ -17,3 +17,7 @@ pub fn test_odbc_connection(connection_string: String) -> String {
 pub fn execute_odbc_query(connection_string: String, query: String) -> String {
   vella_ffi.query_legacy_odbc(connection_string, query)
 }
+
+pub fn execute_sqlite_query(db_path: String, query: String) -> String {
+  vella_ffi.query_sqlite(db_path, query)
+}

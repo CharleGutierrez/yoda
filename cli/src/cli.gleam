@@ -46,6 +46,18 @@ pub fn export_telemetry(format: String) -> String
 @external(erlang, "cli_ffi", "watch_dashboard")
 pub fn watch_live_dashboard() -> String
 
+@external(erlang, "cli_ffi", "db_list")
+pub fn db_list_engines() -> String
+
+@external(erlang, "cli_ffi", "db_query")
+pub fn db_run_query(engine: String, query: String) -> String
+
+@external(erlang, "cli_ffi", "db_tune")
+pub fn db_run_tuner(query: String) -> String
+
+@external(erlang, "cli_ffi", "db_stats")
+pub fn db_get_stats() -> String
+
 @external(erlang, "cli_ffi", "get_argv")
 pub fn get_argv() -> List(String)
 
@@ -65,7 +77,49 @@ pub fn main() {
       at: ["version"],
       do: glint.command_help(
         "Prints CLI version",
-        fn() { glint.command(fn(_, _, _) { io.println("Yoda CLI version 1.1.0 (Enterprise)") }) },
+        fn() { glint.command(fn(_, _, _) { io.println("Yoda CLI version 1.2.0 (Universal Multi-DB & AI Tuner)") }) },
+      ),
+    )
+    |> glint.add(
+      at: ["db-list"],
+      do: glint.command_help(
+        "List all Top 10 supported database engines and connection statuses",
+        fn() { glint.command(fn(_, _, _) { io.println(db_list_engines()) }) },
+      ),
+    )
+    |> glint.add(
+      at: ["db-query"],
+      do: glint.command_help(
+        "Execute query on a specific database (postgres, mysql, redis, sqlite, mongodb, mssql, oracle, snowflake, elasticsearch, scylla)",
+        fn() {
+          glint.command(fn(_named, args, _flags) {
+            case args {
+              [engine, query, ..] -> io.println(db_run_query(engine, query))
+              _ -> io.println("Usage: yoda db-query <engine> <query>")
+            }
+          })
+        },
+      ),
+    )
+    |> glint.add(
+      at: ["db-tune"],
+      do: glint.command_help(
+        "Run the Autonomous AI Optimizer-Tuner on a SQL/NoSQL query to get plan diagnostics and index recommendations",
+        fn() {
+          glint.command(fn(_named, args, _flags) {
+            case args {
+              [query, ..] -> io.println(db_run_tuner(query))
+              _ -> io.println("Usage: yoda db-tune <query>")
+            }
+          })
+        },
+      ),
+    )
+    |> glint.add(
+      at: ["db-stats"],
+      do: glint.command_help(
+        "Show live connection pool statuses across all 10 databases",
+        fn() { glint.command(fn(_, _, _) { io.println(db_get_stats()) }) },
       ),
     )
     |> glint.add(

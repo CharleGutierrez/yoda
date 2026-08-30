@@ -105,6 +105,21 @@ pub fn export_csv_data() -> String
 @external(erlang, "export_engine", "export_json")
 pub fn export_json_data() -> String
 
+@external(erlang, "db_manager", "init")
+pub fn init_db_manager() -> Nil
+
+@external(erlang, "db_manager", "list_engines")
+pub fn db_list_engines() -> String
+
+@external(erlang, "db_manager", "execute_query")
+pub fn db_execute_query(engine: String, query: String) -> String
+
+@external(erlang, "db_manager", "get_pool_stats")
+pub fn db_get_pool_stats() -> String
+
+@external(erlang, "db_ai_tuner", "tune_query")
+pub fn db_tune_query(query: String, key: String) -> String
+
 @external(erlang, "udp_receiver", "start")
 pub fn start_udp_receiver(port: Int) -> Nil
 
@@ -121,6 +136,7 @@ pub fn main() {
   init_ws_broadcaster()
   init_crypto_audit()
   init_timeseries_store()
+  init_db_manager()
   start_log_rotator()
   
   let udp_port = case os_helper.get_env("HFT_DEST_PORT") {
@@ -175,6 +191,35 @@ pub fn main() {
                 let uptime_val = os_helper.system_time_seconds() - start_time
                 let dyn_val = int.to_string(uptime_val)
                 wisp.json_response("{\"status\":\"healthy\",\"uptime\":" <> dyn_val <> "}", 200)
+              }
+              ["api", "db", "engines"] -> {
+                let json = db_list_engines()
+                wisp.json_response(json, 200)
+              }
+              ["api", "db", "query"] -> {
+                use req_body <- wisp.require_string_body(req)
+                let engine = case request.get_query(req) {
+                  Ok(queries) -> case list.key_find(queries, "engine") {
+                    Ok(e) -> e
+                    Error(_) -> "sqlite"
+                  }
+                  Error(_) -> "sqlite"
+                }
+                let result = db_execute_query(engine, string.trim(req_body))
+                wisp.json_response(result, 200)
+              }
+              ["api", "db", "tune"] -> {
+                use req_body <- wisp.require_string_body(req)
+                let key = case os_helper.get_env("AI_GATEWAY_KEY") {
+                  Ok(k) -> k
+                  Error(_) -> "no_key"
+                }
+                let report = db_tune_query(string.trim(req_body), key)
+                wisp.json_response(report, 200)
+              }
+              ["api", "db", "pool_stats"] -> {
+                let stats = db_get_pool_stats()
+                wisp.json_response(stats, 200)
               }
               ["api", "stats"] -> {
                 let stats = timeseries_get_stats()
@@ -385,7 +430,7 @@ pub fn main() {
     |> mist.port(port)
     |> mist.start
 
-  io.println("Yoda High-Performance Server started on http://localhost:" <> int.to_string(port))
+  io.println("Yoda Universal Multi-Database Server started on http://localhost:" <> int.to_string(port))
   process.sleep_forever()
 }
 
