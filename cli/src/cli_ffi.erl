@@ -2,7 +2,8 @@
 -export([status/0, anomalies/0, top/0, unban/1, test_webhook/1, archive/0, get_argv/0,
          odbc_connect/1, odbc_query/1, audit_chain/0, audit_verify/0, diagnose/1,
          stats/0, forecast/0, export_data/1, watch_dashboard/0,
-         db_list/0, db_query/2, db_tune/1, db_stats/0]).
+         db_list/0, db_query/2, db_tune/1, db_stats/0,
+         vector_search/1, vector_insert/2, multimodel_query/1, crdt_state/0, crdt_sync/1]).
 
 get_base_url() ->
     case os:getenv("YODA_SERVER_URL") of
@@ -20,6 +21,59 @@ status() ->
     case httpc:request(get, {Base ++ "/api/status", []}, [], []) of
         {ok, {{_Version, 200, _ReasonPhrase}, _Headers, Body}} -> list_to_binary(Body);
         {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _Body}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
+    end.
+
+vector_search(Text) ->
+    inets:start(),
+    Base = get_base_url(),
+    Url = Base ++ "/api/vector/search",
+    Body = binary_to_list(Text),
+    case httpc:request(post, {Url, [], "text/plain", Body}, [], []) of
+        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, RespBody}} -> list_to_binary(RespBody);
+        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _RespBody}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
+    end.
+
+vector_insert(_Id, Text) ->
+    inets:start(),
+    Base = get_base_url(),
+    Url = Base ++ "/api/vector/insert",
+    Body = binary_to_list(Text),
+    case httpc:request(post, {Url, [], "text/plain", Body}, [], []) of
+        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, RespBody}} -> list_to_binary(RespBody);
+        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _RespBody}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
+    end.
+
+multimodel_query(Query) ->
+    inets:start(),
+    Base = get_base_url(),
+    Url = Base ++ "/api/multimodel/query",
+    Body = binary_to_list(Query),
+    case httpc:request(post, {Url, [], "text/plain", Body}, [], []) of
+        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, RespBody}} -> list_to_binary(RespBody);
+        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _RespBody}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
+    end.
+
+crdt_state() ->
+    inets:start(),
+    Base = get_base_url(),
+    case httpc:request(get, {Base ++ "/api/crdt/state", []}, [], []) of
+        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, Body}} -> list_to_binary(Body);
+        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _Body}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
+    end.
+
+crdt_sync(SyncJson) ->
+    inets:start(),
+    Base = get_base_url(),
+    Url = Base ++ "/api/crdt/sync",
+    Body = binary_to_list(SyncJson),
+    case httpc:request(post, {Url, [], "text/plain", Body}, [], []) of
+        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, RespBody}} -> list_to_binary(RespBody);
+        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _RespBody}} -> list_to_binary("Error: " ++ integer_to_list(Code));
         {error, _} -> <<"Error connecting to server">>
     end.
 

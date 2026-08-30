@@ -58,6 +58,21 @@ pub fn db_run_tuner(query: String) -> String
 @external(erlang, "cli_ffi", "db_stats")
 pub fn db_get_stats() -> String
 
+@external(erlang, "cli_ffi", "vector_search")
+pub fn vector_search_text(text: String) -> String
+
+@external(erlang, "cli_ffi", "vector_insert")
+pub fn vector_insert_text(id: String, text: String) -> String
+
+@external(erlang, "cli_ffi", "multimodel_query")
+pub fn multimodel_run_query(query: String) -> String
+
+@external(erlang, "cli_ffi", "crdt_state")
+pub fn crdt_get_state() -> String
+
+@external(erlang, "cli_ffi", "crdt_sync")
+pub fn crdt_sync_state(json: String) -> String
+
 @external(erlang, "cli_ffi", "get_argv")
 pub fn get_argv() -> List(String)
 
@@ -77,7 +92,70 @@ pub fn main() {
       at: ["version"],
       do: glint.command_help(
         "Prints CLI version",
-        fn() { glint.command(fn(_, _, _) { io.println("Yoda CLI version 1.2.0 (Universal Multi-DB & AI Tuner)") }) },
+        fn() { glint.command(fn(_, _, _) { io.println("Yoda CLI version 1.3.0 (2020s Multi-Model, Vector & CRDT Edition)") }) },
+      ),
+    )
+    |> glint.add(
+      at: ["vector-search"],
+      do: glint.command_help(
+        "Search vector database via cosine similarity and semantic embeddings",
+        fn() {
+          glint.command(fn(_named, args, _flags) {
+            case args {
+              [text, ..] -> io.println(vector_search_text(text))
+              _ -> io.println("Usage: yoda vector-search <text>")
+            }
+          })
+        },
+      ),
+    )
+    |> glint.add(
+      at: ["vector-insert"],
+      do: glint.command_help(
+        "Embed and insert text vector into vector store",
+        fn() {
+          glint.command(fn(_named, args, _flags) {
+            case args {
+              [id, text, ..] -> io.println(vector_insert_text(id, text))
+              _ -> io.println("Usage: yoda vector-insert <id> <text>")
+            }
+          })
+        },
+      ),
+    )
+    |> glint.add(
+      at: ["multimodel-query"],
+      do: glint.command_help(
+        "Execute unified multi-model query (Relational + JSONB + FTS + Vectors)",
+        fn() {
+          glint.command(fn(_named, args, _flags) {
+            case args {
+              [query, ..] -> io.println(multimodel_run_query(query))
+              _ -> io.println("Usage: yoda multimodel-query <query>")
+            }
+          })
+        },
+      ),
+    )
+    |> glint.add(
+      at: ["crdt-state"],
+      do: glint.command_help(
+        "Inspect local-first CRDT LWW-Map and PN-Counter distributed state",
+        fn() { glint.command(fn(_, _, _) { io.println(crdt_get_state()) }) },
+      ),
+    )
+    |> glint.add(
+      at: ["crdt-sync"],
+      do: glint.command_help(
+        "Merge edge device state with server CRDT state conflict-free",
+        fn() {
+          glint.command(fn(_named, args, _flags) {
+            case args {
+              [json, ..] -> io.println(crdt_sync_state(json))
+              _ -> io.println("Usage: yoda crdt-sync <json>")
+            }
+          })
+        },
       ),
     )
     |> glint.add(

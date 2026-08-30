@@ -120,6 +120,30 @@ pub fn db_get_pool_stats() -> String
 @external(erlang, "db_ai_tuner", "tune_query")
 pub fn db_tune_query(query: String, key: String) -> String
 
+@external(erlang, "vector_db", "init")
+pub fn init_vector_db() -> Nil
+
+@external(erlang, "vector_db", "search_text")
+pub fn vector_search_text(text: String, top_k: Int, key: String) -> String
+
+@external(erlang, "vector_db", "insert_text")
+pub fn vector_insert_text(id: String, text: String, metadata: String, key: String) -> String
+
+@external(erlang, "multi_model_engine", "init")
+pub fn init_multi_model_engine() -> Nil
+
+@external(erlang, "multi_model_engine", "query_unified")
+pub fn multi_model_query(query: String) -> String
+
+@external(erlang, "edge_sync_crdt", "init")
+pub fn init_edge_sync_crdt() -> Nil
+
+@external(erlang, "edge_sync_crdt", "get_state_json")
+pub fn crdt_get_state() -> String
+
+@external(erlang, "edge_sync_crdt", "sync_state")
+pub fn crdt_sync_state(incoming: String) -> String
+
 @external(erlang, "udp_receiver", "start")
 pub fn start_udp_receiver(port: Int) -> Nil
 
@@ -137,6 +161,9 @@ pub fn main() {
   init_crypto_audit()
   init_timeseries_store()
   init_db_manager()
+  init_vector_db()
+  init_multi_model_engine()
+  init_edge_sync_crdt()
   start_log_rotator()
   
   let udp_port = case os_helper.get_env("HFT_DEST_PORT") {
@@ -191,6 +218,39 @@ pub fn main() {
                 let uptime_val = os_helper.system_time_seconds() - start_time
                 let dyn_val = int.to_string(uptime_val)
                 wisp.json_response("{\"status\":\"healthy\",\"uptime\":" <> dyn_val <> "}", 200)
+              }
+              ["api", "vector", "search"] -> {
+                use req_body <- wisp.require_string_body(req)
+                let key = case os_helper.get_env("AI_GATEWAY_KEY") {
+                  Ok(k) -> k
+                  Error(_) -> "no_key"
+                }
+                let results = vector_search_text(string.trim(req_body), 5, key)
+                wisp.json_response(results, 200)
+              }
+              ["api", "vector", "insert"] -> {
+                use req_body <- wisp.require_string_body(req)
+                let key = case os_helper.get_env("AI_GATEWAY_KEY") {
+                  Ok(k) -> k
+                  Error(_) -> "no_key"
+                }
+                let id = "vec_" <> int.to_string(os_helper.system_time_seconds())
+                let res = vector_insert_text(id, string.trim(req_body), "{\"source\":\"api\"}", key)
+                wisp.json_response("{\"id\":\"" <> res <> "\",\"status\":\"vector_indexed\"}", 200)
+              }
+              ["api", "multimodel", "query"] -> {
+                use req_body <- wisp.require_string_body(req)
+                let json = multi_model_query(string.trim(req_body))
+                wisp.json_response(json, 200)
+              }
+              ["api", "crdt", "state"] -> {
+                let state_json = crdt_get_state()
+                wisp.json_response(state_json, 200)
+              }
+              ["api", "crdt", "sync"] -> {
+                use req_body <- wisp.require_string_body(req)
+                let merged = crdt_sync_state(string.trim(req_body))
+                wisp.json_response(merged, 200)
               }
               ["api", "db", "engines"] -> {
                 let json = db_list_engines()
@@ -430,7 +490,7 @@ pub fn main() {
     |> mist.port(port)
     |> mist.start
 
-  io.println("Yoda Universal Multi-Database Server started on http://localhost:" <> int.to_string(port))
+  io.println("Yoda 2020s Multi-Model & Vector Platform started on http://localhost:" <> int.to_string(port))
   process.sleep_forever()
 }
 
