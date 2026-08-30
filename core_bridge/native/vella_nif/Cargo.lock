@@ -5773,6 +5773,8 @@ dependencies = [
  "odbc-api",
  "once_cell",
  "rustler",
+ "serde",
+ "serde_json",
  "tracing",
  "tracing-subscriber",
  "vella",

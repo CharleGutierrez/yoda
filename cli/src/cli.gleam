@@ -19,6 +19,21 @@ pub fn test_webhook(url: String) -> String
 @external(erlang, "cli_ffi", "archive")
 pub fn archive_log() -> String
 
+@external(erlang, "cli_ffi", "odbc_connect")
+pub fn odbc_connect(conn_str: String) -> String
+
+@external(erlang, "cli_ffi", "odbc_query")
+pub fn odbc_query(query: String) -> String
+
+@external(erlang, "cli_ffi", "audit_chain")
+pub fn audit_chain() -> String
+
+@external(erlang, "cli_ffi", "audit_verify")
+pub fn audit_verify() -> String
+
+@external(erlang, "cli_ffi", "diagnose")
+pub fn ai_diagnose(anomaly: String) -> String
+
 @external(erlang, "cli_ffi", "get_argv")
 pub fn get_argv() -> List(String)
 
@@ -38,7 +53,7 @@ pub fn main() {
       at: ["version"],
       do: glint.command_help(
         "Prints CLI version",
-        fn() { glint.command(fn(_, _, _) { io.println("Yoda CLI version 1.0.0") }) },
+        fn() { glint.command(fn(_, _, _) { io.println("Yoda CLI version 1.0.0 (Hardened)") }) },
       ),
     )
     |> glint.add(
@@ -88,6 +103,62 @@ pub fn main() {
       do: glint.command_help(
         "Trigger a manual log rotation and archiving",
         fn() { glint.command(fn(_, _, _) { io.println(archive_log()) }) },
+      ),
+    )
+    |> glint.add(
+      at: ["odbc-connect"],
+      do: glint.command_help(
+        "Test an ODBC connection string",
+        fn() {
+          glint.command(fn(_named, args, _flags) {
+            case args {
+              [conn_str, ..] -> io.println(odbc_connect(conn_str))
+              _ -> io.println("Usage: yoda odbc-connect <connection_string>")
+            }
+          })
+        },
+      ),
+    )
+    |> glint.add(
+      at: ["odbc-query"],
+      do: glint.command_help(
+        "Execute a SQL query via ODBC bridge",
+        fn() {
+          glint.command(fn(_named, args, _flags) {
+            case args {
+              [query, ..] -> io.println(odbc_query(query))
+              _ -> io.println("Usage: yoda odbc-query <sql_query>")
+            }
+          })
+        },
+      ),
+    )
+    |> glint.add(
+      at: ["audit-chain"],
+      do: glint.command_help(
+        "Fetch the cryptographic SHA-256 hash-chained audit ledger",
+        fn() { glint.command(fn(_, _, _) { io.println(audit_chain()) }) },
+      ),
+    )
+    |> glint.add(
+      at: ["audit-verify"],
+      do: glint.command_help(
+        "Verify cryptographic audit chain integrity",
+        fn() { glint.command(fn(_, _, _) { io.println(audit_verify()) }) },
+      ),
+    )
+    |> glint.add(
+      at: ["diagnose"],
+      do: glint.command_help(
+        "Run autonomous AI root-cause diagnostic on an anomaly",
+        fn() {
+          glint.command(fn(_named, args, _flags) {
+            case args {
+              [anomaly, ..] -> io.println(ai_diagnose(anomaly))
+              _ -> io.println("Usage: yoda diagnose <anomaly_text>")
+            }
+          })
+        },
       ),
     )
 

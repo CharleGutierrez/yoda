@@ -1,13 +1,11 @@
 import gleeunit
+import core_bridge
 
 pub fn main() -> Nil {
   gleeunit.main()
 }
 
-// gleeunit test functions end in `_test`
-pub fn hello_world_test() {
-  let name = "Joe"
-  let greeting = "Hello, " <> name <> "!"
-
-  assert greeting == "Hello, Joe!"
+pub fn core_bridge_init_test() {
+  let res = core_bridge.main()
+  assert res == Nil
 }

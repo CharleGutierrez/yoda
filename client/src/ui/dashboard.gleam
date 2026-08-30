@@ -4,7 +4,7 @@ import lustre/attribute.{class, attribute, value}
 import lustre/event.{on_input, on_click}
 
 // A sample Lustre component representing a Yoda Dashboard
-// This UI is meant to be hooked directly to Vella's HFT streams for zero-latency updates
+// This UI is hooked directly to Yoda's real-time streaming & cryptographic audit ledger
 pub fn dashboard_view(
   live_hft_data: String, 
   ai_ephemeral_insight: String,
@@ -32,9 +32,9 @@ pub fn dashboard_view(
       p([], [text("CPU & Memory Metrics: " <> system_resources)])
     ]),
     
-    // Real-Time Data Grid hooked to ZK-Rollups / Legacy DB watchers
+    // Real-Time Ingestion Grid hooked to Cryptographic Hash Chain & DBF/ODBC Streams
     div([class("grid-container")], [
-      h2([], [text("Live ZK-Rollup & Legacy DB Stream")]),
+      h2([], [text("Live Cryptographic SHA-256 Audit Stream & Ingestion Grid")]),
       button([attribute("onclick", "document.querySelector('live-data-chart').exportToCsv()")], [text("Export Data")]),
       element("live-data-chart", [
         attribute("data", live_hft_data)
@@ -46,7 +46,7 @@ pub fn dashboard_view(
     
     // AI Ephemeral UI Injection Panel
     div([class("ai-gateway-panel")], [
-      h2([], [text("Autonomous AI Insights")]),
+      h2([], [text("Autonomous AI Anomaly Diagnostics")]),
       div([class("ai-chat-interface")], [
         input([
           value(ai_prompt),
