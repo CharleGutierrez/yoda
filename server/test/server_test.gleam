@@ -460,6 +460,50 @@ pub fn nif_autonomous_fallbacks_and_ai_tuning_test() {
   should.be_true(string.contains(sync_status, "DBF") || string.contains(sync_status, "watching"))
 }
 
+pub fn redis_semantic_cache_hit_miss_and_normalization_test() {
+  server.init_db_manager()
+
+  // 1. First execution - Cache MISS
+  let q = "SELECT device_id, temperature FROM sensor_telemetry WHERE temperature > 40.0"
+  let res1 = server.redis_execute_cached_query("snowflake", q)
+  should.be_true(string.contains(res1, "MISS") && string.contains(res1, "cache_hit\":false"))
+
+  // 2. Second execution with formatting variation - Cache HIT via Normalization
+  let q_formatted = "  SELECT device_id, temperature FROM sensor_telemetry WHERE temperature > 40.0;  "
+  let res2 = server.redis_execute_cached_query("snowflake", q_formatted)
+  should.be_true(string.contains(res2, "HIT") && string.contains(res2, "cache_hit\":true"))
+}
+
+pub fn redis_semantic_cache_invalidation_and_ai_test() {
+  server.init_db_manager()
+
+  // 1. Seed Cache
+  let q = "SELECT count(*) FROM sensor_telemetry WHERE region = 'us-east'"
+  let _ = server.redis_execute_cached_query("snowflake", q)
+  let hit_res = server.redis_execute_cached_query("snowflake", q)
+  should.be_true(string.contains(hit_res, "HIT"))
+
+  // 2. Invalidate Table Scope
+  server.redis_cache_invalidate("sensor_telemetry")
+
+  // 3. Post-invalidation query is a Cache MISS (recomputed)
+  let after_inval = server.redis_execute_cached_query("snowflake", q)
+  should.be_true(string.contains(after_inval, "MISS"))
+
+  // 4. AI Cache Tuning & Analytics
+  let ai_tune = server.redis_cache_ai_tune()
+  should.be_true(
+    string.contains(ai_tune, "autonomous_redis_cache_optimized")
+    && string.contains(ai_tune, "hit_ratio_percent")
+  )
+
+  let ai_analytics = server.redis_cache_ai_analytics()
+  should.be_true(
+    string.contains(ai_analytics, "X-Fetch")
+    && string.contains(ai_analytics, "recommended_eviction_policy")
+  )
+}
+
 fn list_has_item(items: List(String), target: String) -> Bool {
   case items {
     [] -> False

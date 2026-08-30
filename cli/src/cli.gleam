@@ -109,6 +109,15 @@ pub fn run_cache_flush() -> String
 @external(erlang, "cli_ffi", "cache_query")
 pub fn run_cached_query(engine: String, query: String) -> String
 
+@external(erlang, "cli_ffi", "cache_invalidate")
+pub fn cache_invalidate(table: String) -> String
+
+@external(erlang, "cli_ffi", "cache_ai_tune")
+pub fn cache_ai_tune() -> String
+
+@external(erlang, "cli_ffi", "cache_ai_analyze")
+pub fn cache_ai_analyze() -> String
+
 @external(erlang, "cli_ffi", "mongo_command")
 pub fn mongo_command(cmd: String) -> String
 
@@ -554,6 +563,34 @@ pub fn main() {
             }
           })
         },
+      ),
+    )
+    |> glint.add(
+      at: ["cache-invalidate"],
+      do: glint.command_help(
+        "Invalidate cached queries by table scope: yoda cache-invalidate <table>",
+        fn() {
+          glint.command(fn(_named, args, _flags) {
+            case args {
+              [table, ..] -> io.println(cache_invalidate(table))
+              _ -> io.println("Usage: yoda cache-invalidate <table>")
+            }
+          })
+        },
+      ),
+    )
+    |> glint.add(
+      at: ["cache-ai-tune"],
+      do: glint.command_help(
+        "Run Autonomous AI Cache TTL & Eviction Diagnostics",
+        fn() { glint.command(fn(_, _, _) { io.println(cache_ai_tune()) }) },
+      ),
+    )
+    |> glint.add(
+      at: ["cache-ai-analyze"],
+      do: glint.command_help(
+        "Show AI Cache Hit Ratio and X-Fetch Stampede Risk Report",
+        fn() { glint.command(fn(_, _, _) { io.println(cache_ai_analyze()) }) },
       ),
     )
     |> glint.add(

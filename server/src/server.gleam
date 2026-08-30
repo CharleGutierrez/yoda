@@ -264,6 +264,15 @@ pub fn olap_list_tables() -> List(String)
 @external(erlang, "redis_cache", "execute_cached_query")
 pub fn redis_execute_cached_query(engine: String, query: String) -> String
 
+@external(erlang, "redis_cache", "invalidate_table_cache")
+pub fn redis_cache_invalidate(scope: String) -> Nil
+
+@external(erlang, "redis_cache", "ai_tune_cache")
+pub fn redis_cache_ai_tune() -> String
+
+@external(erlang, "redis_cache", "ai_cache_analytics")
+pub fn redis_cache_ai_analytics() -> String
+
 @external(erlang, "vector_db", "init")
 pub fn init_vector_db() -> Nil
 
@@ -430,6 +439,22 @@ pub fn main() {
                 }
                 let result = redis_execute_cached_query(engine, string.trim(req_body))
                 wisp.json_response(result, 200)
+              }
+              ["api", "cache", "invalidate"] -> {
+                let table = case list.key_find(wisp.get_query(req), "table") {
+                  Ok(t) -> t
+                  Error(_) -> "default"
+                }
+                redis_cache_invalidate(table)
+                wisp.json_response("{\"status\":\"invalidated\",\"scope\":\"" <> table <> "\"}", 200)
+              }
+              ["api", "cache", "ai_tune"] -> {
+                let report = redis_cache_ai_tune()
+                wisp.json_response(report, 200)
+              }
+              ["api", "cache", "ai_analyze"] -> {
+                let analysis = redis_cache_ai_analytics()
+                wisp.json_response(analysis, 200)
               }
               ["api", "vella", "optimize"] -> {
                 let vella_report = legacy_bridge.run_vella_system_optimization()

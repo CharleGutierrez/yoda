@@ -149,6 +149,24 @@ pub fn cli_db_indexes_test() {
   should.be_true(valid)
 }
 
+pub fn cli_cache_invalidate_test() {
+  let res = cli.cache_invalidate("sensor_telemetry")
+  let valid = string.contains(res, "invalidated") || string.contains(res, "Error")
+  should.be_true(valid)
+}
+
+pub fn cli_cache_ai_tune_test() {
+  let res = cli.cache_ai_tune()
+  let valid = string.contains(res, "cache") || string.contains(res, "Error")
+  should.be_true(valid)
+}
+
+pub fn cli_cache_ai_analyze_test() {
+  let res = cli.cache_ai_analyze()
+  let valid = string.contains(res, "hit_ratio") || string.contains(res, "Error")
+  should.be_true(valid)
+}
+
 pub fn cli_get_argv_test() {
   let args = cli.get_argv()
   // Just ensure it returns a list

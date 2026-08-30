@@ -29,6 +29,7 @@ init() ->
         _ -> ok
     end,
     redis_engine:init(),
+    redis_cache:init(),
     mongo_engine:init(),
     elastic_engine:init(),
     olap_engine:init(),

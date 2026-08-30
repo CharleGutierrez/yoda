@@ -7,6 +7,7 @@
          vector_search/1, vector_insert/2, multimodel_query/1, crdt_state/0, crdt_sync/1,
          vella_optimize/0, rate_limit_status/1, rate_limit_set/2, rate_limit_all/0,
          cache_stats/0, cache_flush/0, cache_query/2,
+         cache_invalidate/1, cache_ai_tune/0, cache_ai_analyze/0,
          mongo_command/1, mongo_insert/2, mongo_find/2, mongo_findone/2,
          mongo_count/2, mongo_update/3, mongo_delete/2, mongo_aggregate/2,
          mongo_collections/0, mongo_stats/0,
@@ -63,6 +64,36 @@ cache_query(Engine, Query) ->
     case httpc:request(post, {Url, [], "text/plain", Body}, [], []) of
         {ok, {{_Version, 200, _ReasonPhrase}, _Headers, RespBody}} -> list_to_binary(RespBody);
         {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _RespBody}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
+    end.
+
+cache_invalidate(Table) ->
+    inets:start(),
+    Base = get_base_url(),
+    Url = Base ++ "/api/cache/invalidate?table=" ++ binary_to_list(Table),
+    case httpc:request(post, {Url, [], "text/plain", ""}, [], []) of
+        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, Body}} -> list_to_binary(Body);
+        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _Body}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
+    end.
+
+cache_ai_tune() ->
+    inets:start(),
+    Base = get_base_url(),
+    Url = Base ++ "/api/cache/ai_tune",
+    case httpc:request(post, {Url, [], "text/plain", ""}, [], []) of
+        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, Body}} -> list_to_binary(Body);
+        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _Body}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
+    end.
+
+cache_ai_analyze() ->
+    inets:start(),
+    Base = get_base_url(),
+    Url = Base ++ "/api/cache/ai_analyze",
+    case httpc:request(get, {Url, []}, [], []) of
+        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, Body}} -> list_to_binary(Body);
+        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _Body}} -> list_to_binary("Error: " ++ integer_to_list(Code));
         {error, _} -> <<"Error connecting to server">>
     end.
 
