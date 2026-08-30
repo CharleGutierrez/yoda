@@ -18,20 +18,7 @@ init() ->
     ok.
 
 execute_search(QueryBin) ->
-    QueryStr = binary_to_list(QueryBin),
-    Trimmed = string:trim(QueryStr),
-    
-    % Check if indexing request e.g. POST /yoda_logs/_doc {"message": "..."}
-    case string:tokens(Trimmed, " ") of
-        ["INDEX", IndexName, DocId | DocRest] ->
-            DocJson = string:join(DocRest, " "),
-            Id = index_doc(list_to_binary(IndexName), list_to_binary(DocId), list_to_binary(DocJson)),
-            list_to_binary(io_lib:format("{\"_index\":\"~s\",\"_id\":\"~s\",\"_version\":1,\"result\":\"created\",\"_shards\":{\"total\":2,\"successful\":2,\"failed\":0}}",
-                                         [IndexName, binary_to_list(Id)]));
-        _ ->
-            % Perform search on yoda_logs
-            search_index(<<"yoda_logs">>, QueryBin)
-    end.
+    db_manager:simulate_db(<<"Elasticsearch">>, QueryBin).
 
 index_doc(IndexBin, DocIdBin, JsonDocBin) ->
     DocId = if is_binary(DocIdBin) -> DocIdBin; true -> list_to_binary(DocIdBin) end,

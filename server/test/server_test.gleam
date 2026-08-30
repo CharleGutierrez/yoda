@@ -38,3 +38,30 @@ pub fn is_anomaly_test() {
   server.is_anomaly("Critical surge 99.9 psi")
   |> should.equal(True)
 }
+
+pub fn active_users_test() {
+  server.init_active_users()
+  
+  // increment
+  server.active_users_increment()
+  |> should.equal(1)
+  
+  server.active_users_increment()
+  |> should.equal(2)
+  
+  // decrement
+  server.active_users_decrement()
+  |> should.equal(1)
+  
+  // count
+  server.active_users_get_count()
+  |> should.equal(1)
+}
+
+pub fn rate_limiter_test() {
+  server.init_rate_limiter()
+  let limit = 5
+  
+  server.rate_limit_check("127.0.0.1", limit)
+  |> should.equal(True)
+}

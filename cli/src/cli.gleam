@@ -94,6 +94,36 @@ pub fn run_cache_flush() -> String
 @external(erlang, "cli_ffi", "cache_query")
 pub fn run_cached_query(engine: String, query: String) -> String
 
+@external(erlang, "cli_ffi", "mongo_command")
+pub fn mongo_command(cmd: String) -> String
+
+@external(erlang, "cli_ffi", "mongo_insert")
+pub fn mongo_insert(coll: String, doc: String) -> String
+
+@external(erlang, "cli_ffi", "mongo_find")
+pub fn mongo_find(coll: String, filter: String) -> String
+
+@external(erlang, "cli_ffi", "mongo_findone")
+pub fn mongo_findone(coll: String, filter: String) -> String
+
+@external(erlang, "cli_ffi", "mongo_count")
+pub fn mongo_count(coll: String, filter: String) -> String
+
+@external(erlang, "cli_ffi", "mongo_update")
+pub fn mongo_update(coll: String, filter: String, update: String) -> String
+
+@external(erlang, "cli_ffi", "mongo_delete")
+pub fn mongo_delete(coll: String, filter: String) -> String
+
+@external(erlang, "cli_ffi", "mongo_aggregate")
+pub fn mongo_aggregate(coll: String, pipeline: String) -> String
+
+@external(erlang, "cli_ffi", "mongo_collections")
+pub fn mongo_collections() -> String
+
+@external(erlang, "cli_ffi", "mongo_stats")
+pub fn mongo_get_stats() -> String
+
 @external(erlang, "cli_ffi", "get_argv")
 pub fn get_argv() -> List(String)
 
@@ -114,6 +144,135 @@ pub fn main() {
       do: glint.command_help(
         "Prints CLI version",
         fn() { glint.command(fn(_, _, _) { io.println("Yoda CLI version 1.6.0 (Redis Semantic Cache & Multi-Model Platform)") }) },
+      ),
+    )
+    |> glint.add(
+      at: ["mongo", "command"],
+      do: glint.command_help(
+        "Execute any MongoDB shell command: yoda mongo command 'db.collection.find({})'",
+        fn() {
+          glint.command(fn(_named, args, _flags) {
+            case args {
+              [cmd, ..] -> io.println(mongo_command(cmd))
+              _ -> io.println("Usage: yoda mongo command '<mongo_shell_cmd>'")
+            }
+          })
+        },
+      ),
+    )
+    |> glint.add(
+      at: ["mongo", "insert"],
+      do: glint.command_help(
+        "Insert a document: yoda mongo insert <collection> '{\"key\":\"value\"}'",
+        fn() {
+          glint.command(fn(_named, args, _flags) {
+            case args {
+              [coll, doc, ..] -> io.println(mongo_insert(coll, doc))
+              _ -> io.println("Usage: yoda mongo insert <collection> '<json_doc>'")
+            }
+          })
+        },
+      ),
+    )
+    |> glint.add(
+      at: ["mongo", "find"],
+      do: glint.command_help(
+        "Find documents: yoda mongo find <collection> '{\"field\":\"value\"}'",
+        fn() {
+          glint.command(fn(_named, args, _flags) {
+            case args {
+              [coll, filter, ..] -> io.println(mongo_find(coll, filter))
+              [coll] -> io.println(mongo_find(coll, "{}"))
+              _ -> io.println("Usage: yoda mongo find <collection> '<filter>'")
+            }
+          })
+        },
+      ),
+    )
+    |> glint.add(
+      at: ["mongo", "findone"],
+      do: glint.command_help(
+        "Find first matching document: yoda mongo findone <collection> '{\"field\":\"value\"}'",
+        fn() {
+          glint.command(fn(_named, args, _flags) {
+            case args {
+              [coll, filter, ..] -> io.println(mongo_findone(coll, filter))
+              [coll] -> io.println(mongo_findone(coll, "{}"))
+              _ -> io.println("Usage: yoda mongo findone <collection> '<filter>'")
+            }
+          })
+        },
+      ),
+    )
+    |> glint.add(
+      at: ["mongo", "count"],
+      do: glint.command_help(
+        "Count documents: yoda mongo count <collection> '<filter>'",
+        fn() {
+          glint.command(fn(_named, args, _flags) {
+            case args {
+              [coll, filter, ..] -> io.println(mongo_count(coll, filter))
+              [coll] -> io.println(mongo_count(coll, "{}"))
+              _ -> io.println("Usage: yoda mongo count <collection> '<filter>'")
+            }
+          })
+        },
+      ),
+    )
+    |> glint.add(
+      at: ["mongo", "update"],
+      do: glint.command_help(
+        "Update a document: yoda mongo update <collection> '{\"filter\":{}} '{\"$set\":{\"field\":\"val\"}}'",
+        fn() {
+          glint.command(fn(_named, args, _flags) {
+            case args {
+              [coll, filter, update, ..] -> io.println(mongo_update(coll, filter, update))
+              _ -> io.println("Usage: yoda mongo update <collection> '<filter>' '<update>'")
+            }
+          })
+        },
+      ),
+    )
+    |> glint.add(
+      at: ["mongo", "delete"],
+      do: glint.command_help(
+        "Delete documents: yoda mongo delete <collection> '{\"field\":\"value\"}'",
+        fn() {
+          glint.command(fn(_named, args, _flags) {
+            case args {
+              [coll, filter, ..] -> io.println(mongo_delete(coll, filter))
+              _ -> io.println("Usage: yoda mongo delete <collection> '<filter>'")
+            }
+          })
+        },
+      ),
+    )
+    |> glint.add(
+      at: ["mongo", "aggregate"],
+      do: glint.command_help(
+        "Run aggregation pipeline: yoda mongo aggregate <collection> '[{\"$match\":{}},{\"$group\":{...}}]'",
+        fn() {
+          glint.command(fn(_named, args, _flags) {
+            case args {
+              [coll, pipeline, ..] -> io.println(mongo_aggregate(coll, pipeline))
+              _ -> io.println("Usage: yoda mongo aggregate <collection> '<pipeline>'")
+            }
+          })
+        },
+      ),
+    )
+    |> glint.add(
+      at: ["mongo", "collections"],
+      do: glint.command_help(
+        "List all MongoDB collections",
+        fn() { glint.command(fn(_, _, _) { io.println(mongo_collections()) }) },
+      ),
+    )
+    |> glint.add(
+      at: ["mongo", "stats"],
+      do: glint.command_help(
+        "Show MongoDB engine stats (documents, inserts, finds, updates, deletes)",
+        fn() { glint.command(fn(_, _, _) { io.println(mongo_get_stats()) }) },
       ),
     )
     |> glint.add(

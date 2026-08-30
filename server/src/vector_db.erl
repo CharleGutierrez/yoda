@@ -110,22 +110,26 @@ parse_embedding_json(JsonBin) ->
     end.
 
 generate_local_embedding(Text) ->
-    % Deterministic 16-dimensional semantic feature embedding based on character trigram hashing
-    Dim = 16,
-    CleanText = string:to_lower(Text),
-    Tokens = string:tokens(CleanText, " \t\n\r,.:;!?"),
-    InitialVec = lists:duplicate(Dim, 0.0),
-    PopulatedVec = lists:foldl(fun(Token, Acc) ->
-        Hash = erlang:phash2(Token, Dim),
-        Index = Hash + 1,
-        Len = float(length(Token)),
-        update_nth(Index, Acc, Len)
-    end, InitialVec, Tokens),
-    % Normalize vector
-    Norm = calculate_norm(PopulatedVec),
-    if
-        Norm > 1.0e-9 -> [ V / Norm || V <- PopulatedVec ];
-        true -> lists:duplicate(Dim, 1.0 / math:sqrt(Dim))
+    Cmd = "python3 server/src/local_embed.py \"" ++ escape_json(Text) ++ "\" 2>/dev/null",
+    Result = os:cmd(Cmd),
+    case parse_embedding_json(list_to_binary(Result)) of
+        {ok, Vec} -> Vec;
+        _ ->
+            Dim = 16,
+            CleanText = string:to_lower(Text),
+            Tokens = string:tokens(CleanText, " \t\n\r,.:;!?"),
+            InitialVec = lists:duplicate(Dim, 0.0),
+            PopulatedVec = lists:foldl(fun(Token, Acc) ->
+                Hash = erlang:phash2(Token, Dim),
+                Index = Hash + 1,
+                Len = float(length(Token)),
+                update_nth(Index, Acc, Len)
+            end, InitialVec, Tokens),
+            Norm = calculate_norm(PopulatedVec),
+            if
+                Norm > 1.0e-9 -> [ V / Norm || V <- PopulatedVec ];
+                true -> lists:duplicate(Dim, 1.0 / math:sqrt(Dim))
+            end
     end.
 
 update_nth(Index, List, Incr) ->

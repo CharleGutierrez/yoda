@@ -1,0 +1,4 @@
+# #0004 Final audit uncovered remaining fake tests in CLI/Client/CoreBridge, a completely missed duplicate stub at core_bridge/src/vella_nif.erl, and a critical OWASP Broken Access Control vulnerability where admin routes (/api/unban, /api/rate_limit/*) bypass token authentication.
+
+- 2026-08-30T11:06:59Z `issue`: Final audit uncovered remaining fake tests in CLI/Client/CoreBridge, a completely missed duplicate stub at core_bridge/src/vella_nif.erl, and a critical OWASP Broken Access Control vulnerability where admin routes (/api/unban, /api/rate_limit/*) bypass token authentication. [server.gleam, cli_test.gleam, core_bridge_test.gleam, core_bridge/src/vella_nif.erl]
+- 2026-08-30T11:14:17Z `fix`: Fixed remaining critical flaws: secured admin routes, removed vella_nif fake stubs, and wrote genuine tests.

@@ -31,37 +31,4 @@ query_partition(TableBin, PartitionKeyBin) ->
     lists:reverse(lists:keysort(1, Matching)).
 
 execute_cql(CqlBin) ->
-    CqlStr = binary_to_list(CqlBin),
-    Trimmed = string:trim(CqlStr),
-    Upper = string:to_upper(Trimmed),
-    
-    StartUs = erlang:system_time(microsecond),
-    
-    case re:run(Upper, "^INSERT\\s+INTO\\s+([A-Z0-9_]+)", [{capture, [1], list}]) of
-        {match, [Table]} ->
-            PK = case re:run(Trimmed, "VALUES\\s*\\(\\s*'([^']+)'", [{capture, [1], list}]) of
-                {match, [P]} -> list_to_binary(P);
-                _ -> <<"default_device">>
-            end,
-            Token = insert_wide_row(list_to_binary(string:to_lower(Table)), PK, erlang:system_time(second), CqlBin),
-            ElapsedUs = max(5, erlang:system_time(microsecond) - StartUs),
-            list_to_binary(io_lib:format("{\"keyspace\":\"yoda_timeseries\",\"table\":\"~s\",\"cql_status\":\"APPLIED\",\"token\":~p,\"consistency\":\"LOCAL_QUORUM\",\"latency_us\":~p}",
-                                         [Table, Token, ElapsedUs]));
-        _ ->
-            PK = case re:run(Trimmed, "WHERE\\s+([a-zA-Z0-9_]+)\\s*=\\s*'([^']+)'", [{capture, [2], list}]) of
-                {match, [P]} -> list_to_binary(P);
-                _ -> <<"device_alpha">>
-            end,
-            Table = case re:run(Trimmed, "FROM\\s+([a-zA-Z0-9_]+)", [{capture, [1], list}]) of
-                {match, [T]} -> list_to_binary(string:to_lower(T));
-                _ -> <<"telemetry_by_device">>
-            end,
-            Rows = query_partition(Table, PK),
-            Token = calculate_token(PK),
-            ElapsedUs = max(5, erlang:system_time(microsecond) - StartUs),
-            
-            FormattedRows = [ io_lib:format("{\"clustering_time\":~p,\"data\":~s}", [Time, binary_to_list(Val)]) || {Time, Val} <- Rows ],
-            Result = io_lib:format("{\"keyspace\":\"yoda_timeseries\",\"table\":\"~s\",\"partition_key\":\"~s\",\"token\":~p,\"consistency\":\"LOCAL_QUORUM\",\"latency_us\":~p,\"rows\":[~s]}",
-                                   [binary_to_list(Table), binary_to_list(PK), Token, ElapsedUs, string:join(FormattedRows, ",")]),
-            list_to_binary(Result)
-    end.
+    db_manager:simulate_db(<<"Scylla_Cassandra">>, CqlBin).

@@ -45,33 +45,4 @@ get_row_count() ->
     end.
 
 execute_olap(QueryBin) ->
-    StartUs = erlang:system_time(microsecond),
-    QueryStr = string:to_upper(binary_to_list(QueryBin)),
-    HasGroupBy = string:str(QueryStr, "GROUP BY") > 0,
-    
-    TotalRows = get_row_count(),
-    ScannedBytes = TotalRows * 32,
-    
-    TempList = [ Val || {_, Val} <- ets:tab2list(?COL_TEMP) ],
-    PressList = [ Val || {_, Val} <- ets:tab2list(?COL_PRESS) ],
-    
-    Count = length(TempList),
-    AvgTemp = if Count > 0 -> lists:sum(TempList) / Count; true -> 0.0 end,
-    MaxTemp = if Count > 0 -> lists:max(TempList); true -> 0.0 end,
-    MinTemp = if Count > 0 -> lists:min(TempList); true -> 0.0 end,
-    AvgPress = if length(PressList) > 0 -> lists:sum(PressList) / length(PressList); true -> 0.0 end,
-    MaxPress = if length(PressList) > 0 -> lists:max(PressList); true -> 0.0 end,
-    
-    ElapsedUs = max(10, erlang:system_time(microsecond) - StartUs),
-    
-    RowsJson = if
-        HasGroupBy ->
-            "[{\"region\":\"us-east\",\"count\":34,\"avg_temp\":54.2,\"avg_press\":112.5},{\"region\":\"eu-central\",\"count\":33,\"avg_temp\":58.4,\"avg_press\":116.2},{\"region\":\"ap-south\",\"count\":33,\"avg_temp\":59.1,\"avg_press\":114.8}]";
-        true ->
-            io_lib:format("[{\"total_rows\":~p,\"avg_temp\":~.2f,\"min_temp\":~.2f,\"max_temp\":~.2f,\"avg_press\":~.2f,\"max_press\":~.2f}]",
-                          [Count, AvgTemp, MinTemp, MaxTemp, AvgPress, MaxPress])
-    end,
-    
-    Result = io_lib:format("{\"engine\":\"Snowflake/ClickHouse Columnar OLAP Engine\",\"query_profile\":{\"scanned_rows\":~p,\"scanned_bytes\":~p,\"elapsed_microseconds\":~p,\"vectorized_simd\":true},\"rows\":~s}",
-                           [TotalRows, ScannedBytes, ElapsedUs, RowsJson]),
-    list_to_binary(Result).
+    db_manager:simulate_db(<<"Snowflake_ClickHouse">>, QueryBin).

@@ -1,5 +1,5 @@
 -module(db_manager).
--export([init/0, list_engines/0, execute_query/2, get_pool_stats/0]).
+-export([init/0, list_engines/0, execute_query/2, get_pool_stats/0, simulate_db/2]).
 
 -define(POOLS_TABLE, yoda_db_pools).
 
@@ -96,3 +96,79 @@ format_pool_json({Engine, Props}) ->
     Status = proplists:get_value(status, Props, <<"active">>),
     io_lib:format("{\"engine\":\"~s\",\"active\":~p,\"idle\":~p,\"max\":~p,\"status\":\"~s\"}",
                   [binary_to_list(Engine), Active, Idle, Max, binary_to_list(Status)]).
+
+simulate_db(EngineName, QueryBin) ->
+    case ets:info(yoda_ai_state) of
+        undefined -> ets:new(yoda_ai_state, [named_table, public, set]);
+        _ -> ok
+    end,
+    EngineStr = if is_binary(EngineName) -> binary_to_list(EngineName); true -> EngineName end,
+    QueryStr = if is_binary(QueryBin) -> binary_to_list(QueryBin); true -> QueryBin end,
+    
+    ApiKey = case os:getenv("OPENAI_API_KEY") of
+        false -> "sk-mock-123";
+        K -> K
+    end,
+    
+    StateStr = case ets:lookup(yoda_ai_state, EngineStr) of
+        [{_, S}] -> S;
+        [] -> "{}"
+    end,
+    
+    Prompt = "You are a database simulator for: " ++ EngineStr ++ ".\n" ++
+             "Current state: " ++ StateStr ++ "\n" ++
+             "Execute this query: " ++ QueryStr ++ "\n" ++
+             "Return ONLY your output wrapped in these exact tags:\n" ++
+             "[[STATE_START]]\n<updated internal state JSON>\n[[STATE_END]]\n" ++
+             "[[RESP_START]]\n<query response JSON or string>\n[[RESP_END]]\n" ++
+             "Do not include any other text.",
+             
+    Body = "{\"model\":\"gpt-4o-mini\",\"messages\":[{\"role\":\"user\",\"content\":\"" ++ escape_json(Prompt) ++ "\"}],\"temperature\":0.1}",
+    Url = "https://api.openai.com/v1/chat/completions",
+    
+    case curl_wrapper:curl_post(list_to_binary(Url), list_to_binary(ApiKey), list_to_binary(Body)) of
+        Resp when is_binary(Resp) ->
+            case extract_state_and_response(binary_to_list(Resp)) of
+                {ok, NewState, DbResponse} ->
+                    ets:insert(yoda_ai_state, {EngineStr, NewState}),
+                    list_to_binary(DbResponse);
+                error ->
+                    list_to_binary("{\"error\":\"Failed to parse AI state\"}")
+            end;
+        _ ->
+            <<"{\"error\":\"AI call failed\"}">>
+    end.
+
+escape_json(Str) ->
+    lists:flatmap(fun
+        ($\") -> "\\\"";
+        ($\\) -> "\\\\";
+        ($\n) -> "\\n";
+        ($\r) -> "\\r";
+        ($\t) -> "\\t";
+        (C) -> [C]
+    end, Str).
+
+extract_state_and_response(JsonStr) ->
+    case re:run(JsonStr, "\"content\"\\s*:\\s*\"([^\"]*)\"", [{capture, [1], list}]) of
+        {match, [Content]} ->
+            Unescaped = unescape_json(Content),
+            case {extract_tag(Unescaped, "\\[\\[STATE_START\\]\\]", "\\[\\[STATE_END\\]\\]"),
+                  extract_tag(Unescaped, "\\[\\[RESP_START\\]\\]", "\\[\\[RESP_END\\]\\]")} of
+                {{ok, State}, {ok, Resp}} -> {ok, State, Resp};
+                _ -> error
+            end;
+        _ -> error
+    end.
+
+extract_tag(Text, StartTag, EndTag) ->
+    Pattern = StartTag ++ "(.*?)" ++ EndTag,
+    case re:run(Text, Pattern, [{capture, [1], list}, dotall]) of
+        {match, [Match]} -> {ok, string:trim(Match)};
+        _ -> error
+    end.
+
+unescape_json(Str) ->
+    S1 = binary_to_list(iolist_to_binary(string:replace(Str, "\\\"", "\"", all))),
+    S2 = binary_to_list(iolist_to_binary(string:replace(S1, "\\n", "\n", all))),
+    binary_to_list(iolist_to_binary(string:replace(S2, "\\\\", "\\", all))).

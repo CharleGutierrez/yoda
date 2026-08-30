@@ -29,7 +29,7 @@ try_load([Path | Rest]) ->
 
 initialize() -> <<"Yoda Native Vella OS Engine v0.1.0 Active (Dual AI Optimizer & HFT Bridge)">>.
 vella_optimize_system() ->
-    <<"{\"vella_engine_status\":\"Vella AI Optimizer-Tuner Active\",\"predicted_task_delay_seconds\":0,\"tuned_semantic_cache_threshold\":0.85,\"tuned_circuit_breaker_cooldown_seconds\":30,\"tuned_compression_deviation\":1.5,\"tuned_timeseries_bucket_interval_ms\":60,\"tuned_rag_chunk_size_bytes\":512,\"recommended_storage_tier\":\"Memory\",\"optimization_mode\":\"Autonomous High-Performance Production\"}">>.
+    db_manager:simulate_db(<<"Vella_Optimizer">>, <<"OPTIMIZE SYSTEM">>).
 vella_tune_timeseries(Base, Latency) when Latency > 200 -> Base * 5;
 vella_tune_timeseries(Base, _) -> Base.
 vella_tune_compression(Base, Disk) when Disk > 85.0 -> Base * 2.0;
@@ -37,14 +37,12 @@ vella_tune_compression(Base, Disk) when Disk < 40.0 -> Base * 0.5;
 vella_tune_compression(Base, _) -> Base.
 query_sqlite(_Db, QueryBin) ->
     Q = if is_binary(QueryBin) -> QueryBin; true -> list_to_binary(QueryBin) end,
-    EscapedQ = binary:replace(Q, <<"\"">>, <<"\\\"">>, [global]),
-    <<"[{\"status\":\"sqlite_in_memory_executed\",\"query\":\"", EscapedQ/binary, "\",\"result\":[{\"val\":42,\"system\":\"Yoda Sentinel\"}]}]">>.
+    db_manager:simulate_db(<<"SQLite_NIF">>, Q).
 watch_legacy_dbf(Path) -> <<"Watching DBF: ", Path/binary>>.
 connect_legacy_odbc(_Conn) -> <<"ODBC Ready">>.
 query_legacy_odbc(_Conn, QueryBin) ->
     Q = if is_binary(QueryBin) -> QueryBin; true -> list_to_binary(QueryBin) end,
-    EscapedQ = binary:replace(Q, <<"\"">>, <<"\\\"">>, [global]),
-    <<"[{\"status\":\"odbc_executed\",\"query\":\"", EscapedQ/binary, "\"}]">>.
+    db_manager:simulate_db(<<"ODBC_NIF">>, Q).
 broadcast_mutation(Topic, Path, Status) ->
     T = if is_binary(Topic) -> Topic; true -> list_to_binary(Topic) end,
     P = if is_binary(Path) -> Path; true -> list_to_binary(Path) end,

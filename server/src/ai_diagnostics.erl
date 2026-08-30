@@ -3,18 +3,21 @@
 
 diagnose_anomaly(AnomalyTextBin, ApiKeyBin) ->
     AnomalyText = if is_binary(AnomalyTextBin) -> binary_to_list(AnomalyTextBin); is_list(AnomalyTextBin) -> AnomalyTextBin; true -> "" end,
-    ApiKey = if is_binary(ApiKeyBin) -> binary_to_list(ApiKeyBin); is_list(ApiKeyBin) -> ApiKeyBin; true -> "" end,
-    case ApiKey of
-        "sk-" ++ _ ->
-            Prompt = "Act as an expert industrial reliability engineer. Analyze this anomalous telemetry event: '" ++ AnomalyText ++ "'. Give a 1-sentence root-cause hypothesis and recommended mitigation.",
-            Body = "{\"model\":\"gpt-3.5-turbo\",\"messages\":[{\"role\":\"user\",\"content\":\"" ++ escape_json(Prompt) ++ "\"}],\"max_tokens\":100}",
-            Url = "https://api.openai.com/v1/chat/completions",
-            case curl_wrapper:curl_post(list_to_binary(Url), ApiKeyBin, list_to_binary(Body)) of
-                Resp when is_binary(Resp) -> Resp;
-                _ -> local_heuristic_diagnostic(list_to_binary(AnomalyText))
-            end;
+    ApiKeyBinStr = if is_binary(ApiKeyBin) -> binary_to_list(ApiKeyBin); is_list(ApiKeyBin) -> ApiKeyBin; true -> "" end,
+    ApiKey = case ApiKeyBinStr of
+        "sk-" ++ _ -> ApiKeyBinStr;
         _ ->
-            local_heuristic_diagnostic(list_to_binary(AnomalyText))
+            case os:getenv("OPENAI_API_KEY") of
+                false -> "sk-mock";
+                K -> K
+            end
+    end,
+    Prompt = "Act as an expert industrial reliability engineer. Analyze this anomalous telemetry event: '" ++ AnomalyText ++ "'. Give a 1-sentence root-cause hypothesis and recommended mitigation.",
+    Body = "{\"model\":\"gpt-4o-mini\",\"messages\":[{\"role\":\"user\",\"content\":\"" ++ escape_json(Prompt) ++ "\"}],\"max_tokens\":100}",
+    Url = "https://api.openai.com/v1/chat/completions",
+    case curl_wrapper:curl_post(list_to_binary(Url), list_to_binary(ApiKey), list_to_binary(Body)) of
+        Resp when is_binary(Resp) -> Resp;
+        _ -> <<"{\"diagnostic\":\"AI analysis failed. Please verify OPENAI_API_KEY.\",\"status\":\"error\"}">>
     end.
 
 local_heuristic_diagnostic(AnomalyTextBin) ->

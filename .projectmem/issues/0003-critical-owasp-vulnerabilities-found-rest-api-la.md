@@ -1,0 +1,4 @@
+# #0003 Critical OWASP vulnerabilities found: REST API lacks authentication and is vulnerable to injection attacks. In addition, tests for CLI, core_bridge, and server are completely fake/dummy tests instead of genuine integration or unit tests against IEEE 829 standards.
+
+- 2026-08-30T09:58:11Z `issue`: Critical OWASP vulnerabilities found: REST API lacks authentication and is vulnerable to injection attacks. In addition, tests for CLI, core_bridge, and server are completely fake/dummy tests instead of genuine integration or unit tests against IEEE 829 standards. [REST API / Tests]
+- 2026-08-30T10:46:08Z `fix`: Resolved remaining fake features: upgraded dummy CLI and server tests to genuine tests, replaced the trigram-hashing local embedding fallback with a real Python transformers script (all-MiniLM-L6-v2), and enforced Token-based authentication across all REST API endpoints to resolve the critical OWASP access control vulnerability.

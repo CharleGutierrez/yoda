@@ -5,7 +5,10 @@
          db_list/0, db_query/2, db_tune/1, db_stats/0,
          vector_search/1, vector_insert/2, multimodel_query/1, crdt_state/0, crdt_sync/1,
          vella_optimize/0, rate_limit_status/1, rate_limit_set/2, rate_limit_all/0,
-         cache_stats/0, cache_flush/0, cache_query/2]).
+         cache_stats/0, cache_flush/0, cache_query/2,
+         mongo_command/1, mongo_insert/2, mongo_find/2, mongo_findone/2,
+         mongo_count/2, mongo_update/3, mongo_delete/2, mongo_aggregate/2,
+         mongo_collections/0, mongo_stats/0]).
 
 get_base_url() ->
     case os:getenv("YODA_SERVER_URL") of
@@ -326,6 +329,66 @@ watch_dashboard() ->
     io:format("Ledger Proof:  ~s~n", [Audit]),
     io:format("────────────────────────────────────────────────────────────────────────~n"),
     <<"Live Monitor Finished">>.
+
+% ====================================================================
+%  MongoDB CLI helpers
+% ====================================================================
+mongo_post(Path, Body) ->
+    inets:start(),
+    Base = get_base_url(),
+    Url = Base ++ Path,
+    case httpc:request(post, {Url, [], "application/json", Body}, [], []) of
+        {ok, {{_Version, 200, _}, _Headers, RespBody}} -> list_to_binary(RespBody);
+        {ok, {{_Version, Code, _}, _Headers, _}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
+    end.
+
+mongo_get(Path) ->
+    inets:start(),
+    Base = get_base_url(),
+    case httpc:request(get, {Base ++ Path, []}, [], []) of
+        {ok, {{_Version, 200, _}, _Headers, Body}} -> list_to_binary(Body);
+        {ok, {{_Version, Code, _}, _Headers, _}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
+    end.
+
+mongo_command(CmdBin) ->
+    mongo_post("/api/mongo/command", binary_to_list(CmdBin)).
+
+mongo_insert(CollBin, DocBin) ->
+    Coll = binary_to_list(CollBin),
+    mongo_post("/api/mongo/insert?collection=" ++ Coll, binary_to_list(DocBin)).
+
+mongo_find(CollBin, FilterBin) ->
+    Coll = binary_to_list(CollBin),
+    mongo_post("/api/mongo/find?collection=" ++ Coll, binary_to_list(FilterBin)).
+
+mongo_findone(CollBin, FilterBin) ->
+    Coll = binary_to_list(CollBin),
+    mongo_post("/api/mongo/findone?collection=" ++ Coll, binary_to_list(FilterBin)).
+
+mongo_count(CollBin, FilterBin) ->
+    Coll = binary_to_list(CollBin),
+    mongo_post("/api/mongo/count?collection=" ++ Coll, binary_to_list(FilterBin)).
+
+mongo_update(CollBin, FilterBin, UpdateBin) ->
+    Coll = binary_to_list(CollBin),
+    Filter = uri_string:quote(binary_to_list(FilterBin), []),
+    mongo_post("/api/mongo/update?collection=" ++ Coll ++ "&filter=" ++ Filter, binary_to_list(UpdateBin)).
+
+mongo_delete(CollBin, FilterBin) ->
+    Coll = binary_to_list(CollBin),
+    mongo_post("/api/mongo/delete?collection=" ++ Coll, binary_to_list(FilterBin)).
+
+mongo_aggregate(CollBin, PipelineBin) ->
+    Coll = binary_to_list(CollBin),
+    mongo_post("/api/mongo/aggregate?collection=" ++ Coll, binary_to_list(PipelineBin)).
+
+mongo_collections() ->
+    mongo_get("/api/mongo/collections").
+
+mongo_stats() ->
+    mongo_get("/api/mongo/stats").
 
 get_argv() ->
     Args = init:get_plain_arguments(),

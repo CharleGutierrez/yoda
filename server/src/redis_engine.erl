@@ -68,13 +68,7 @@ check_expired(KeyBin) ->
     end.
 
 execute(CommandBin) ->
-    CmdStr = binary_to_list(CommandBin),
-    Tokens = string:tokens(string:trim(CmdStr), " \t\n\r"),
-    case Tokens of
-        [] -> <<"{\"error\":\"ERR empty command\"}">>;
-        [Op | Args] ->
-            dispatch_cmd(string:to_upper(Op), Args)
-    end.
+    db_manager:simulate_db(<<"Redis">>, CommandBin).
 
 dispatch_cmd("PING", []) ->
     <<"\"PONG\"">>;

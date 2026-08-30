@@ -132,6 +132,42 @@ pub fn db_get_pool_stats() -> String
 @external(erlang, "db_ai_tuner", "tune_query")
 pub fn db_tune_query(query: String, key: String) -> String
 
+@external(erlang, "mongo_engine", "execute_mongo")
+pub fn mongo_execute(cmd: String) -> String
+
+@external(erlang, "mongo_engine", "insert_doc")
+pub fn mongo_insert_doc(coll: String, doc: String) -> String
+
+@external(erlang, "mongo_engine", "find_docs")
+pub fn mongo_find_docs(coll: String, filter: String) -> List(String)
+
+@external(erlang, "mongo_engine", "find_one")
+pub fn mongo_find_one(coll: String, filter: String) -> String
+
+@external(erlang, "mongo_engine", "count_docs")
+pub fn mongo_count_docs(coll: String, filter: String) -> Int
+
+@external(erlang, "mongo_engine", "update_one")
+pub fn mongo_update_one(coll: String, filter: String, update: String) -> #(Int, Int)
+
+@external(erlang, "mongo_engine", "delete_docs")
+pub fn mongo_delete_docs(coll: String, filter: String) -> Int
+
+@external(erlang, "mongo_engine", "delete_one")
+pub fn mongo_delete_one(coll: String, filter: String) -> Int
+
+@external(erlang, "mongo_engine", "list_collections")
+pub fn mongo_list_collections() -> List(String)
+
+@external(erlang, "mongo_engine", "drop_collection")
+pub fn mongo_drop_collection(coll: String) -> Nil
+
+@external(erlang, "mongo_engine", "aggregate")
+pub fn mongo_aggregate(coll: String, pipeline: String) -> List(String)
+
+@external(erlang, "mongo_engine", "get_engine_stats")
+pub fn mongo_get_stats() -> String
+
 @external(erlang, "redis_cache", "init")
 pub fn init_redis_cache() -> Nil
 
@@ -209,44 +245,7 @@ pub fn main() {
       Error(_) -> "127.0.0.1"
     }
 
-    // Whitelisted admin routes that bypass rate limiting
     case path {
-      ["api", "unban"] -> {
-        use req_body <- wisp.require_string_body(req)
-        rate_limit_reset(string.trim(req_body))
-        wisp.json_response("{\"status\":\"unbanned\"}", 200)
-      }
-      ["api", "rate_limit", "status"] -> {
-        let query_ip = case list.key_find(wisp.get_query(req), "ip") {
-          Ok(target_ip) -> target_ip
-          Error(_) -> ip
-        }
-        let status_json = rate_limit_get_ip_status(query_ip)
-        wisp.json_response(status_json, 200)
-      }
-      ["api", "rate_limit", "all"] -> {
-        let all_json = rate_limit_get_all_status()
-        wisp.json_response(all_json, 200)
-      }
-      ["api", "rate_limit", "config"] -> {
-        let queries = wisp.get_query(req)
-        let max_reqs = case list.key_find(queries, "limit") {
-          Ok(l_str) -> case int.parse(l_str) {
-            Ok(l) -> l
-            Error(_) -> 100
-          }
-          Error(_) -> 100
-        }
-        let window_secs = case list.key_find(queries, "window") {
-          Ok(w_str) -> case int.parse(w_str) {
-            Ok(w) -> w
-            Error(_) -> 60
-          }
-          Error(_) -> 60
-        }
-        rate_limit_set_config(max_reqs, window_secs)
-        wisp.json_response("{\"status\":\"rate_limiter_configured\",\"limit\":" <> int.to_string(max_reqs) <> ",\"window_seconds\":" <> int.to_string(window_secs) <> "}", 200)
-      }
       ["metrics"] -> {
         let uptime_val = os_helper.system_time_seconds() - start_time
         let active_ws = active_users_get_count()
@@ -264,12 +263,68 @@ pub fn main() {
         wisp.html_response(metrics_text, 200)
       }
       _ -> {
-        case rate_limit_check(ip, 0) {
+        let is_api = case path {
+          ["api", ..] -> True
+          _ -> False
+        }
+        let is_auth = case request.get_header(req, "authorization") {
+          Ok("Bearer " <> t) -> case os_helper.get_env("API_TOKEN") {
+            Ok(env_t) -> t == env_t
+            Error(_) -> False
+          }
+          _ -> case list.key_find(wisp.get_query(req), "token") {
+            Ok(t) -> case os_helper.get_env("API_TOKEN") {
+              Ok(env_t) -> t == env_t
+              Error(_) -> False
+            }
+            _ -> False
+          }
+        }
+        case is_api, is_auth {
+          True, False -> wisp.json_response("{\"error\":\"Unauthorized\"}", 401)
+          _, _ -> {
+            case rate_limit_check(ip, 0) {
           False -> {
             wisp.html_response("Too Many Requests", 429)
           }
           True -> {
             case path {
+              ["api", "unban"] -> {
+                use req_body <- wisp.require_string_body(req)
+                rate_limit_reset(string.trim(req_body))
+                wisp.json_response("{\"status\":\"unbanned\"}", 200)
+              }
+              ["api", "rate_limit", "status"] -> {
+                let query_ip = case list.key_find(wisp.get_query(req), "ip") {
+                  Ok(target_ip) -> target_ip
+                  Error(_) -> ip
+                }
+                let status_json = rate_limit_get_ip_status(query_ip)
+                wisp.json_response(status_json, 200)
+              }
+              ["api", "rate_limit", "all"] -> {
+                let all_json = rate_limit_get_all_status()
+                wisp.json_response(all_json, 200)
+              }
+              ["api", "rate_limit", "config"] -> {
+                let queries = wisp.get_query(req)
+                let max_reqs = case list.key_find(queries, "limit") {
+                  Ok(l_str) -> case int.parse(l_str) {
+                    Ok(l) -> l
+                    Error(_) -> 100
+                  }
+                  Error(_) -> 100
+                }
+                let window_secs = case list.key_find(queries, "window") {
+                  Ok(w_str) -> case int.parse(w_str) {
+                    Ok(w) -> w
+                    Error(_) -> 60
+                  }
+                  Error(_) -> 60
+                }
+                rate_limit_set_config(max_reqs, window_secs)
+                wisp.json_response("{\"status\":\"rate_limiter_configured\",\"limit\":" <> int.to_string(max_reqs) <> ",\"window_seconds\":" <> int.to_string(window_secs) <> "}", 200)
+              }
               ["api", "status"] -> {
                 let uptime_val = os_helper.system_time_seconds() - start_time
                 let dyn_val = int.to_string(uptime_val)
@@ -329,6 +384,89 @@ pub fn main() {
                 let merged = crdt_sync_state(string.trim(req_body))
                 wisp.json_response(merged, 200)
               }
+              // ── MongoDB dedicated routes ───────────────────────────────────
+              ["api", "mongo", "command"] -> {
+                use req_body <- wisp.require_string_body(req)
+                let result = mongo_execute(string.trim(req_body))
+                wisp.json_response(result, 200)
+              }
+              ["api", "mongo", "insert"] -> {
+                use req_body <- wisp.require_string_body(req)
+                let coll = case list.key_find(wisp.get_query(req), "collection") {
+                  Ok(c) -> c
+                  Error(_) -> "telemetry_events"
+                }
+                let id = mongo_insert_doc(coll, string.trim(req_body))
+                wisp.json_response("{\"acknowledged\":true,\"insertedId\":\"" <> id <> "\",\"collection\":\"" <> coll <> "\"}", 200)
+              }
+              ["api", "mongo", "find"] -> {
+                use req_body <- wisp.require_string_body(req)
+                let coll = case list.key_find(wisp.get_query(req), "collection") {
+                  Ok(c) -> c
+                  Error(_) -> "telemetry_events"
+                }
+                let filter = string.trim(req_body)
+                let docs = mongo_find_docs(coll, filter)
+                wisp.json_response("[" <> string.join(docs, ",") <> "]", 200)
+              }
+              ["api", "mongo", "findone"] -> {
+                use req_body <- wisp.require_string_body(req)
+                let coll = case list.key_find(wisp.get_query(req), "collection") {
+                  Ok(c) -> c
+                  Error(_) -> "telemetry_events"
+                }
+                let doc = mongo_find_one(coll, string.trim(req_body))
+                wisp.json_response(doc, 200)
+              }
+              ["api", "mongo", "count"] -> {
+                use req_body <- wisp.require_string_body(req)
+                let coll = case list.key_find(wisp.get_query(req), "collection") {
+                  Ok(c) -> c
+                  Error(_) -> "telemetry_events"
+                }
+                let count = mongo_count_docs(coll, string.trim(req_body))
+                wisp.json_response("{\"count\":" <> int.to_string(count) <> ",\"collection\":\"" <> coll <> "\"}", 200)
+              }
+              ["api", "mongo", "update"] -> {
+                use req_body <- wisp.require_string_body(req)
+                let coll = case list.key_find(wisp.get_query(req), "collection") {
+                  Ok(c) -> c
+                  Error(_) -> "telemetry_events"
+                }
+                let filter = case list.key_find(wisp.get_query(req), "filter") {
+                  Ok(f) -> f
+                  Error(_) -> "{}"
+                }
+                let #(matched, modified) = mongo_update_one(coll, filter, string.trim(req_body))
+                wisp.json_response("{\"acknowledged\":true,\"matchedCount\":" <> int.to_string(matched) <> ",\"modifiedCount\":" <> int.to_string(modified) <> "}", 200)
+              }
+              ["api", "mongo", "delete"] -> {
+                use req_body <- wisp.require_string_body(req)
+                let coll = case list.key_find(wisp.get_query(req), "collection") {
+                  Ok(c) -> c
+                  Error(_) -> "telemetry_events"
+                }
+                let deleted = mongo_delete_docs(coll, string.trim(req_body))
+                wisp.json_response("{\"acknowledged\":true,\"deletedCount\":" <> int.to_string(deleted) <> "}", 200)
+              }
+              ["api", "mongo", "aggregate"] -> {
+                use req_body <- wisp.require_string_body(req)
+                let coll = case list.key_find(wisp.get_query(req), "collection") {
+                  Ok(c) -> c
+                  Error(_) -> "telemetry_events"
+                }
+                let results = mongo_aggregate(coll, string.trim(req_body))
+                wisp.json_response("[" <> string.join(results, ",") <> "]", 200)
+              }
+              ["api", "mongo", "collections"] -> {
+                let colls = mongo_list_collections()
+                wisp.json_response("{\"collections\":[" <> string.join(list.map(colls, fn(c) { "\"" <> c <> "\"" }), ",") <> "]}", 200)
+              }
+              ["api", "mongo", "stats"] -> {
+                let stats = mongo_get_stats()
+                wisp.json_response(stats, 200)
+              }
+              // ── End MongoDB routes ─────────────────────────────────────────────
               ["api", "db", "engines"] -> {
                 let json = db_list_engines()
                 wisp.json_response(json, 200)
@@ -464,7 +602,8 @@ pub fn main() {
       }
     }
   }
-  
+  }
+  }
   let secret = wisp.random_string(64)
   let wisp_app = wisp_mist.handler(handler, secret)
   

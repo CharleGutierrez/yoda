@@ -5,14 +5,18 @@ tune_query(QueryBin, ApiKeyBin) ->
     Query = binary_to_list(QueryBin),
     ApiKey = binary_to_list(ApiKeyBin),
     
-    if
-        ApiKey =/= "no_key", length(ApiKey) > 5, ApiKey =/= "default_key" ->
-            case call_llm_tuner(Query, ApiKeyBin) of
-                Resp when is_binary(Resp) -> Resp;
-                _ -> local_ai_tune(Query)
-            end;
-        true ->
-            local_ai_tune(Query)
+    FinalKey = if
+        ApiKey =/= "no_key", length(ApiKey) > 5, ApiKey =/= "default_key" -> ApiKey;
+        true -> 
+            case os:getenv("OPENAI_API_KEY") of
+                false -> "sk-mock";
+                K -> K
+            end
+    end,
+    
+    case call_llm_tuner(Query, list_to_binary(FinalKey)) of
+        Resp when is_binary(Resp) -> Resp;
+        _ -> local_ai_tune(Query)
     end.
 
 local_ai_tune(Query) ->
@@ -93,7 +97,7 @@ extract_suggested_index(Upper) ->
 
 call_llm_tuner(Query, ApiKeyBin) ->
     Prompt = "Act as an expert Senior Database Architect & AI Performance Tuner. Analyze this database query: '" ++ Query ++ "'. Provide a 1-sentence performance diagnosis, optimal index recommendation, and storage tier (Postgres, Redis, Snowflake, Mongo).",
-    Body = "{\"model\":\"gpt-3.5-turbo\",\"messages\":[{\"role\":\"user\",\"content\":\"" ++ escape_json(Prompt) ++ "\"}],\"max_tokens\":120}",
+    Body = "{\"model\":\"gpt-4o-mini\",\"messages\":[{\"role\":\"user\",\"content\":\"" ++ escape_json(Prompt) ++ "\"}],\"max_tokens\":120}",
     Url = "https://api.openai.com/v1/chat/completions",
     curl_wrapper:curl_post(list_to_binary(Url), ApiKeyBin, list_to_binary(Body)).
 
