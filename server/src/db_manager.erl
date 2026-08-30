@@ -1,15 +1,9 @@
 -module(db_manager).
--export([init/0, list_engines/0, execute_query/2, get_pool_stats/0, execute_redis_command/1]).
+-export([init/0, list_engines/0, execute_query/2, get_pool_stats/0]).
 
--define(REDIS_TABLE, yoda_inmem_redis).
 -define(POOLS_TABLE, yoda_db_pools).
 
 init() ->
-    case ets:info(?REDIS_TABLE) of
-        undefined ->
-            ets:new(?REDIS_TABLE, [named_table, public, set, {read_concurrency, true}, {write_concurrency, true}]);
-        _ -> ok
-    end,
     case ets:info(?POOLS_TABLE) of
         undefined ->
             ets:new(?POOLS_TABLE, [named_table, public, set]),
@@ -25,6 +19,7 @@ init() ->
             ets:insert(?POOLS_TABLE, {<<"scylla_cassandra">>, [{active, 24}, {idle, 8}, {max, 100}, {status, <<"cql_ready">>}]});
         _ -> ok
     end,
+    redis_engine:init(),
     mongo_engine:init(),
     elastic_engine:init(),
     olap_engine:init(),
@@ -36,7 +31,7 @@ list_engines() ->
         "{\"id\":\"postgres\",\"name\":\"PostgreSQL\",\"type\":\"Object-Relational / Multi-Model\",\"category\":\"Relational & Vector (pgvector)\",\"status\":\"Active\",\"latency\":\"< 2ms\"}",
         "{\"id\":\"mysql\",\"name\":\"MySQL / MariaDB\",\"type\":\"Relational RDBMS\",\"category\":\"Transactional Web\",\"status\":\"Active\",\"latency\":\"< 2ms\"}",
         "{\"id\":\"mongodb\",\"name\":\"MongoDB\",\"type\":\"NoSQL Document Store\",\"category\":\"Polymorphic BSON/JSON\",\"status\":\"Active\",\"latency\":\"< 3ms\"}",
-        "{\"id\":\"redis\",\"name\":\"Redis\",\"type\":\"In-Memory Key-Value\",\"category\":\"Sub-millisecond Cache & PubSub\",\"status\":\"Active\",\"latency\":\"< 0.2ms\"}",
+        "{\"id\":\"redis\",\"name\":\"Redis\",\"type\":\"In-Memory Key-Value & Data Structures\",\"category\":\"Sub-millisecond Strings, Hashes, Lists, Sets, ZSets\",\"status\":\"Active\",\"latency\":\"< 0.1ms\"}",
         "{\"id\":\"sqlite\",\"name\":\"SQLite (Embedded)\",\"type\":\"Embedded Serverless SQL\",\"category\":\"Local-First & Edge Persistence\",\"status\":\"Active\",\"latency\":\"< 0.1ms\"}",
         "{\"id\":\"mssql\",\"name\":\"Microsoft SQL Server\",\"type\":\"Enterprise Relational RDBMS\",\"category\":\"Corporate IT & Analytics\",\"status\":\"Active\",\"latency\":\"< 4ms\"}",
         "{\"id\":\"oracle\",\"name\":\"Oracle Database\",\"type\":\"Enterprise ACID RDBMS\",\"category\":\"Mission-Critical Financial Core\",\"status\":\"Active\",\"latency\":\"< 5ms\"}",
@@ -52,7 +47,7 @@ execute_query(EngineBin, QueryBin) ->
         "sqlite" ->
             vella_nif:query_sqlite(<<":memory:">>, QueryBin);
         "redis" ->
-            execute_redis_command(QueryBin);
+            redis_engine:execute(QueryBin);
         "postgres" ->
             execute_sql_route("PostgreSQL", QueryBin);
         "mysql" ->
@@ -87,42 +82,6 @@ execute_sql_route(EngineName, QueryBin) ->
                 Res when is_binary(Res) -> Res;
                 _ -> list_to_binary(io_lib:format("{\"error\":\"Failed executing against ~s\"}", [EngineName]))
             end
-    end.
-
-execute_redis_command(CommandBin) ->
-    Cmd = binary_to_list(CommandBin),
-    Parts = string:tokens(Cmd, " "),
-    case Parts of
-        ["SET", Key, Val | _] ->
-            ets:insert(?REDIS_TABLE, {list_to_binary(Key), list_to_binary(Val)}),
-            <<"{\"result\":\"OK\"}">>;
-        ["GET", Key] ->
-            KeyBin = list_to_binary(Key),
-            case ets:lookup(?REDIS_TABLE, KeyBin) of
-                [{_, Val}] -> list_to_binary(io_lib:format("{\"key\":\"~s\",\"value\":\"~s\"}", [Key, binary_to_list(Val)]));
-                [] -> list_to_binary(io_lib:format("{\"key\":\"~s\",\"value\":null}", [Key]))
-            end;
-        ["DEL", Key] ->
-            ets:delete(?REDIS_TABLE, list_to_binary(Key)),
-            <<"{\"result\":1}">>;
-        ["INCR", Key] ->
-            KeyBin = list_to_binary(Key),
-            NewVal = case ets:lookup(?REDIS_TABLE, KeyBin) of
-                [{_, V}] ->
-                    case string:to_integer(binary_to_list(V)) of
-                        {Int, _} -> Int + 1;
-                        _ -> 1
-                    end;
-                [] -> 1
-            end,
-            ets:insert(?REDIS_TABLE, {KeyBin, integer_to_binary(NewVal)}),
-            list_to_binary(io_lib:format("{\"key\":\"~s\",\"value\":~p}", [Key, NewVal]));
-        ["KEYS"] ->
-            Keys = [ binary_to_list(K) || {K, _} <- ets:tab2list(?REDIS_TABLE) ],
-            Formatted = [ "\"" ++ K ++ "\"" || K <- Keys ],
-            list_to_binary("{\"keys\":[" ++ string:join(Formatted, ",") ++ "]}");
-        _ ->
-            <<"{\"result\":\"PONG\"}">>
     end.
 
 get_pool_stats() ->
