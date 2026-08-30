@@ -30,8 +30,20 @@ pub fn init_rate_limiter() -> Nil
 @external(erlang, "rate_limiter", "check_and_increment")
 pub fn rate_limit_check(ip: String, limit: Int) -> Bool
 
+@external(erlang, "rate_limiter", "check_and_increment_variable")
+pub fn rate_limit_check_variable(ip: String, max_requests: Int, window_seconds: Int) -> Bool
+
 @external(erlang, "rate_limiter", "reset_ip")
 pub fn rate_limit_reset(ip: String) -> Nil
+
+@external(erlang, "rate_limiter", "set_config")
+pub fn rate_limit_set_config(limit: Int, window_seconds: Int) -> Nil
+
+@external(erlang, "rate_limiter", "get_ip_status_json")
+pub fn rate_limit_get_ip_status(ip: String) -> String
+
+@external(erlang, "rate_limiter", "get_all_status_json")
+pub fn rate_limit_get_all_status() -> String
 
 @external(erlang, "webhook_router", "dispatch_alert")
 pub fn dispatch_webhook_alert(url: String, alert_msg: String, diagnostic: String) -> Nil
@@ -191,6 +203,37 @@ pub fn main() {
         rate_limit_reset(string.trim(req_body))
         wisp.json_response("{\"status\":\"unbanned\"}", 200)
       }
+      ["api", "rate_limit", "status"] -> {
+        let query_ip = case list.key_find(wisp.get_query(req), "ip") {
+          Ok(target_ip) -> target_ip
+          Error(_) -> ip
+        }
+        let status_json = rate_limit_get_ip_status(query_ip)
+        wisp.json_response(status_json, 200)
+      }
+      ["api", "rate_limit", "all"] -> {
+        let all_json = rate_limit_get_all_status()
+        wisp.json_response(all_json, 200)
+      }
+      ["api", "rate_limit", "config"] -> {
+        let queries = wisp.get_query(req)
+        let max_reqs = case list.key_find(queries, "limit") {
+          Ok(l_str) -> case int.parse(l_str) {
+            Ok(l) -> l
+            Error(_) -> 100
+          }
+          Error(_) -> 100
+        }
+        let window_secs = case list.key_find(queries, "window") {
+          Ok(w_str) -> case int.parse(w_str) {
+            Ok(w) -> w
+            Error(_) -> 60
+          }
+          Error(_) -> 60
+        }
+        rate_limit_set_config(max_reqs, window_secs)
+        wisp.json_response("{\"status\":\"rate_limiter_configured\",\"limit\":" <> int.to_string(max_reqs) <> ",\"window_seconds\":" <> int.to_string(window_secs) <> "}", 200)
+      }
       ["metrics"] -> {
         let uptime_val = os_helper.system_time_seconds() - start_time
         let active_ws = active_users_get_count()
@@ -208,7 +251,7 @@ pub fn main() {
         wisp.html_response(metrics_text, 200)
       }
       _ -> {
-        case rate_limit_check(ip, 100) {
+        case rate_limit_check(ip, 0) {
           False -> {
             wisp.html_response("Too Many Requests", 429)
           }
@@ -488,7 +531,7 @@ pub fn main() {
     |> mist.port(port)
     |> mist.start
 
-  io.println("Yoda Native Vella Multi-Model Engine started on http://localhost:" <> int.to_string(port))
+  io.println("Yoda Variable Rate Limiter Platform started on http://localhost:" <> int.to_string(port))
   process.sleep_forever()
 }
 

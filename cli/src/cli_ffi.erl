@@ -4,7 +4,7 @@
          stats/0, forecast/0, export_data/1, watch_dashboard/0,
          db_list/0, db_query/2, db_tune/1, db_stats/0,
          vector_search/1, vector_insert/2, multimodel_query/1, crdt_state/0, crdt_sync/1,
-         vella_optimize/0, replay/1]).
+         vella_optimize/0, rate_limit_status/1, rate_limit_set/2, rate_limit_all/0]).
 
 get_base_url() ->
     case os:getenv("YODA_SERVER_URL") of
@@ -20,6 +20,36 @@ status() ->
     inets:start(),
     Base = get_base_url(),
     case httpc:request(get, {Base ++ "/api/status", []}, [], []) of
+        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, Body}} -> list_to_binary(Body);
+        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _Body}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
+    end.
+
+rate_limit_status(IP) ->
+    inets:start(),
+    Base = get_base_url(),
+    Url = Base ++ "/api/rate_limit/status?ip=" ++ binary_to_list(IP),
+    case httpc:request(get, {Url, []}, [], []) of
+        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, Body}} -> list_to_binary(Body);
+        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _Body}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
+    end.
+
+rate_limit_all() ->
+    inets:start(),
+    Base = get_base_url(),
+    Url = Base ++ "/api/rate_limit/all",
+    case httpc:request(get, {Url, []}, [], []) of
+        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, Body}} -> list_to_binary(Body);
+        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _Body}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
+    end.
+
+rate_limit_set(Limit, WindowSecs) ->
+    inets:start(),
+    Base = get_base_url(),
+    Url = Base ++ "/api/rate_limit/config?limit=" ++ binary_to_list(Limit) ++ "&window=" ++ binary_to_list(WindowSecs),
+    case httpc:request(post, {Url, [], "text/plain", ""}, [], []) of
         {ok, {{_Version, 200, _ReasonPhrase}, _Headers, Body}} -> list_to_binary(Body);
         {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _Body}} -> list_to_binary("Error: " ++ integer_to_list(Code));
         {error, _} -> <<"Error connecting to server">>
@@ -270,13 +300,3 @@ watch_dashboard() ->
 get_argv() ->
     Args = init:get_plain_arguments(),
     [list_to_binary(A) || A <- Args].
-
-replay(Limit) ->
-    inets:start(),
-    Base = get_base_url(),
-    Url = Base ++ "/api/replay?limit=" ++ binary_to_list(Limit),
-    case httpc:request(get, {Url, []}, [], []) of
-        {ok, {{_Version, 200, _ReasonPhrase}, _Headers, Body}} -> list_to_binary(Body);
-        {ok, {{_Version, Code, _ReasonPhrase}, _Headers, _Body}} -> list_to_binary("Error: " ++ integer_to_list(Code));
-        {error, _} -> <<"Error connecting to server">>
-    end.

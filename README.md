@@ -2,9 +2,9 @@
 
 <img src="assets/logo.svg" alt="Yoda Logo" width="100%" />
 
-# YODA (v1.4.0 - Vella Engine Optimized Edition)
+# YODA (v1.5.0 - Variable Rate Limiter & Multi-Model Platform)
 
-**High-Performance Real-Time Legacy Data Bridge, Universal Multi-Model Convergence (JSONB + FTS + Vectors), Vella Autonomous AI Engine & Cryptographic Telemetry Sentinel**
+**High-Performance Real-Time Legacy Data Bridge, Variable High-Precision Rate Limiter, Universal Multi-Model Convergence (JSONB + FTS + Vectors), Vella Autonomous AI Engine & Cryptographic Telemetry Sentinel**
 
 [![Gleam](https://img.shields.io/badge/Gleam-1.4.1-ffaff3?style=for-the-badge&logo=gleam&logoColor=white)](https://gleam.run/)
 [![Erlang/OTP](https://img.shields.io/badge/Erlang%2FOTP-26.0+-A90533?style=for-the-badge&logo=erlang&logoColor=white)](https://www.erlang.org/)
@@ -15,7 +15,7 @@
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](Dockerfile)
 
 <p align="center">
-  <b>Vella AI Optimizer-Tuner</b> • <b>Multi-Model Convergence (FTS+Vector)</b> • <b>Top 10 Universal Databases</b> • <b>Local-First CRDT Edge Sync</b> • <b>SHA-256 Audit Ledger</b>
+  <b>Variable High-Precision Rate Limiter</b> • <b>Vella AI Optimizer-Tuner</b> • <b>Multi-Model Convergence (FTS+Vector)</b> • <b>Top 10 Universal Databases</b> • <b>Local-First CRDT Edge Sync</b>
 </p>
 
 </div>
@@ -24,160 +24,96 @@
 
 ## 📑 Table of Contents
 - [1. Executive Overview](#1-executive-overview)
-- [2. Vella Framework Deep Optimization Integration](#2-vella-framework-deep-optimization-integration)
-- [3. The 3 Key Architectural Trends of the 2020s in Yoda](#3-the-3-key-architectural-trends-of-the-2020s-in-yoda)
-- [4. Top 10 Universal Databases & AI DBA Tuner](#4-top-10-universal-databases--ai-dba-tuner)
-- [5. Subsystems Architecture](#5-subsystems-architecture)
-- [6. Installation & Quickstart](#6-installation--quickstart)
-- [7. Step-by-Step Tutorials & Manuals](#7-step-by-step-tutorials--manuals)
-  - [Tutorial 1: Running Emergency Vella AI Optimization](#tutorial-1-running-emergency-vella-ai-optimization)
-  - [Tutorial 2: Vector Similarity Search & Semantic Embedding](#tutorial-2-vector-similarity-search--semantic-embedding)
-  - [Tutorial 3: Multi-Model Converged Queries (Relational + JSON + FTS + Vector)](#tutorial-3-multi-model-converged-queries-relational--json--fts--vector)
-  - [Tutorial 4: Local-First CRDT Edge Synchronization](#tutorial-4-local-first-crdt-edge-synchronization)
-  - [Tutorial 5: Real-Time Multi-Database Querying (Top 10 Databases)](#tutorial-5-real-time-multi-database-querying-top-10-databases)
-  - [Tutorial 6: Terminal TUI Watcher & Telemetry Export](#tutorial-6-terminal-tui-watcher--telemetry-export)
-- [8. Complete API & CLI Reference](#8-complete-api--cli-reference)
-- [9. Configuration & Environment Variables](#9-configuration--environment-variables)
-- [10. License & Contributing](#10-license--contributing)
+- [2. Variable High-Precision Rate Limiter Architecture](#2-variable-high-precision-rate-limiter-architecture)
+- [3. Vella Framework Deep Optimization](#3-vella-framework-deep-optimization)
+- [4. The 3 Key Architectural Trends of the 2020s in Yoda](#4-the-3-key-architectural-trends-of-the-2020s-in-yoda)
+- [5. Top 10 Universal Databases & AI DBA Tuner](#5-top-10-universal-databases--ai-dba-tuner)
+- [6. Subsystems Architecture](#6-subsystems-architecture)
+- [7. Installation & Quickstart](#7-installation--quickstart)
+- [8. Step-by-Step Tutorials & Manuals](#8-step-by-step-tutorials--manuals)
+  - [Tutorial 1: Configuring Variable Rate Limiting & Checking IP Quotas](#tutorial-1-configuring-variable-rate-limiting--checking-ip-quotas)
+  - [Tutorial 2: Running Emergency Vella AI Optimization](#tutorial-2-running-emergency-vella-ai-optimization)
+  - [Tutorial 3: Vector Similarity Search & Semantic Embedding](#tutorial-3-vector-similarity-search--semantic-embedding)
+  - [Tutorial 4: Multi-Model Converged Queries (Relational + JSON + FTS + Vector)](#tutorial-4-multi-model-converged-queries-relational--json--fts--vector)
+  - [Tutorial 5: Local-First CRDT Edge Synchronization](#tutorial-5-local-first-crdt-edge-synchronization)
+  - [Tutorial 6: Real-Time Multi-Database Querying (Top 10 Databases)](#tutorial-6-real-time-multi-database-querying-top-10-databases)
+  - [Tutorial 7: Terminal TUI Watcher & Telemetry Export](#tutorial-7-terminal-tui-watcher--telemetry-export)
+- [9. Complete API & CLI Reference](#9-complete-api--cli-reference)
+- [10. Configuration & Environment Variables](#10-configuration--environment-variables)
+- [11. License & Contributing](#11-license--contributing)
 
 ---
 
 ## 1. Executive Overview
 
-**Yoda** is a distributed telemetry platform and universal multi-database bridge powered by the **Vella Framework** (`vella::ai::tuner::AiTuner`).
+**Yoda** is a distributed telemetry platform, universal multi-database bridge, and real-time sentinel engineered for high-throughput enterprise infrastructure.
 
-When real-time telemetry loads spike or hardware resources are strained, Yoda engages Vella's native OS auto-tuner to:
-1. **Dynamically Scale Time-Series Resolution:** Widens downsampling intervals when query latency exceeds SLA thresholds.
-2. **Auto-Tune Semantic Cache Cosine Thresholds:** Optimizes vector caching accuracy vs token cost.
-3. **Adaptive Swinging Door Trend Compression:** Aggressively drops unneeded sensor noise when storage exceeds 85% disk capacity.
-4. **Autonomous Circuit Breaker Stretching:** Expands cooldown windows when upstream services experience volatility.
-5. **Intelligent Tier Routing:** Automatically promotes high-frequency files to in-memory RAM caching.
+It pairs **low-level systems performance in Rust** with the **fault-tolerant concurrency of Erlang/OTP** and the **type safety of Gleam**, featuring:
+1. **Variable High-Precision Rate Limiting:** Millisecond-accurate sliding windows configurable from 100ms to 3600s, with dynamic quota inspection and runtime reconfiguration.
+2. **Vella AI System Optimizer:** Hardware-aware auto-tuning of downsampling bucket intervals, semantic vector caches, and circuit breaker cooldowns.
+3. **Multi-Model Convergence:** Unified store fusing Relational Tables, JSON Documents, Inverted Full-Text Search (FTS), and Vector Embeddings.
+4. **Local-First & Edge CRDT Sync:** Conflict-Free Replicated Data Types (LWW-Map and P-N Counter) for offline edge nodes.
+5. **Top 10 Universal Databases:** Native connectors and in-memory bridges for PostgreSQL, MySQL, MongoDB, Redis, SQLite, MSSQL, Oracle, Snowflake, Elasticsearch, and ScyllaDB.
 
 ---
 
-## 2. Vella Framework Deep Optimization Integration
+## 2. Variable High-Precision Rate Limiter Architecture
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                        VELLA FRAMEWORK OPTIMIZATION MATRIX                             │
+│                        VARIABLE RATE LIMITER SPECIFICATION                             │
 ├───────────────────────────────┬────────────────────────────────────────────────────────┤
-│ Optimization Vector           │ Vella Autonomous Action in Yoda                        │
-├───────────────────────────────┼────────────────────────────────────────────────────────┤
-│ 1. Time-Series Latency        │ Dynamically scales bucket intervals (60ms -> 300ms)    │
-│                               │ to keep analytics queries sub-millisecond.             │
-│ 2. Storage Saturation (>85%)  │ Activates Swinging Door Compression to preserve disk.  │
-│ 3. Semantic AI Cache          │ Auto-tunes Cosine threshold (0.85 - 0.95) to save tokens│
-│ 4. Downstream Failures        │ Stretches Circuit Breaker cooldowns under volatility.  │
-│ 5. Hot Storage Promotion      │ Promotes files with >1,000 accesses to RAM cache.      │
+│ Window Range                  │ Configurable from 1 second to 3600 seconds (or custom) │
+│ Millisecond Sliding Precision │ Tracks {IP, Count, WindowStartMs, Limit, WindowSecs}   │
+│ Dynamic Reconfiguration API   │ POST /api/rate_limit/config?limit=50&window=10         │
+│ Live Quota Telemetry          │ Inspects remaining quota and reset countdown per IP    │
+│ Whitelisted Admin Protection  │ /api/unban, /metrics, /api/rate_limit/* bypass limits  │
 └───────────────────────────────┴────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 3. The 3 Key Architectural Trends of the 2020s in Yoda
+## 3. Step-by-Step Tutorials & Manuals
 
-* **Multi-Model Convergence:** Unifies Relational Tables, JSON Documents, Full-Text Search (FTS), and Vector Embeddings in one queryable store (`multi_model_engine.erl`).
-* **Embedded AI Vector Database:** Fast in-memory Cosine Similarity search with feature embeddings (`vector_db.erl`).
-* **Local-First & Edge CRDT Sync:** Conflict-Free Replicated Data Types (LWW-Map and P-N Counter) for offline edge nodes (`edge_sync_crdt.erl`).
+### Tutorial 1: Configuring Variable Rate Limiting & Checking IP Quotas
 
----
-
-## 4. Top 10 Universal Databases & AI DBA Tuner
-
-Native query support and connection pool monitoring across:
-1. **PostgreSQL** (with pgvector & JSONB)
-2. **MySQL / MariaDB**
-3. **MongoDB**
-4. **Redis** (Sub-millisecond in-memory cache)
-5. **SQLite** (Native embedded SQL)
-6. **Microsoft SQL Server**
-7. **Oracle Database**
-8. **Snowflake / ClickHouse**
-9. **Elasticsearch / OpenSearch**
-10. **ScyllaDB / Apache Cassandra**
-
----
-
-## 5. Subsystems Architecture
-
-```
-                                  ┌───────────────────────────┐
-                                  │      TOP 10 DATABASES     │
-                                  │ Postgres • MySQL • Mongo  │
-                                  │ Redis • SQLite • MSSQL    │
-                                  │ Oracle • OLAP • Elastic   │
-                                  └─────────────┬─────────────┘
-                                                │
-                                Native Protocols│ ODBC / REST / FFI
-                                (NIF & Erlang)  │ In-Memory ETS
-                                                ▼
-┌───────────────────────────────────────────────────────────────────────────────────────────────┐
-│                      VELLA ENGINE & 2020s ARCHITECTURAL PLATFORM                              │
-│   • Vella AI Optimizer-Tuner (vella::ai::tuner) • Multi-Model Unified Store                   │
-│   • Embedded AI Vector DB (Cosine Sim)         • Local-First Edge Sync CRDT                   │
-│   • Top 10 Universal Database Hub              • In-Memory Time-Series Ring Buffer            │
-└───────────────────────────────────────────────┬───────────────────────────────────────────────┘
-                                                │
-                                 Rustler FFI    │ UDP Socket (Port 8080)
-                                 (vella_ffi)    │
-                                                ▼
-┌───────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                YODA SERVER (Gleam & Erlang/OTP)                               │
-│                                                                                               │
-│   ┌──────────────────────────────────┐            ┌──────────────────────────────────────┐    │
-│   │       MIST & WISP ENGINE         │            │           OTP ACTOR SYSTEM           │    │
-│   │ • Vella Auto-Tuner Endpoint      │            │ • UDP Socket Receiver (Port 8080)    │    │
-│   │ • Multi-Model & Vector Search    │            │ • In-Memory Time-Series Ring Buffer  │    │
-│   │ • Local-First CRDT Sync API      │            │ • Cryptographic SHA-256 Audit Ledger │    │
-│   │ • Token-Authenticated WebSocket  │            │ • WebSocket Real-Time Multicaster    │    │
-│   │ • Discord & Slack Webhook Router │            │ • Deadlock-Free Rate Limiter         │    │
-│   │ • Full Prometheus /metrics Gauge │            │ • GenServer Log Rotator (>500KB)     │    │
-│   └─────────────────┬────────────────┘            └──────────────────────────────────────┘    │
-└─────────────────────┼────────────────────────────────────────────────────────┬────────────────┘
-                      │                                                        │
-                      │ WebSocket (/ws?token=...)                              │ HTTP REST
-                      │ Real-Time Broadcast Frames                             │ (inets / cli_ffi)
-                      ▼                                                        ▼
-┌──────────────────────────────────────────────┐        ┌──────────────────────────────────────┐
-│           CLIENT (Lustre SPA)                │        │               YODA CLI               │
-│                                              │        │                                      │
-│ • Model-View-Update (TEA) State Machine      │        │ • Vella System Optimizer (vella-*)   │
-│ • Canvas <live-data-chart> (60 FPS)          │        │ • Vector Search & Insert (vector-*)  │
-│ • Multi-Database Top 10 Dashboard            │        │ • Multi-Model Query (multimodel-*)   │
-│ • AI Diagnostics & Root-Cause Panel          │        │ • Local-First CRDT Sync (crdt-*)     │
-│ • Native CSS View Transitions & Glassmorphism│        │ • Database List & Query (db-*)       │
-└──────────────────────────────────────────────┘        │ • Live Terminal TUI Watcher (watch)  │
-                                                        └──────────────────────────────────────┘
-```
-
----
-
-## 6. Installation & Quickstart
-
+#### 1. Set a Variable Rate Limit via REST API or CLI:
 ```bash
-# Clone the repository
-git clone https://github.com/CharleGutierrez/yoda.git
-cd yoda
+# Configure 50 requests per 10 seconds via CLI
+cd cli
+gleam run -- rate-limit set 50 10
 
-# Build Native Rust NIF Bridge
-cd core_bridge/native/vella_nif
-cargo build --release
-cd ../..
+# Or via REST API
+curl -X POST "http://localhost:8000/api/rate_limit/config?limit=50&window=10"
+```
 
-# Launch Yoda Server
-cd server
-export PORT=8000
-export WS_TOKEN="yoda-secret"
-gleam run
+#### 2. Check Live Remaining Quota for an IP:
+```bash
+# Check quota status for a specific IP
+gleam run -- rate-limit status 192.168.1.50
+```
+
+**Output:**
+```json
+{
+  "ip": "192.168.1.50",
+  "current_requests": 14,
+  "max_requests": 50,
+  "remaining": 36,
+  "window_seconds": 10,
+  "reset_in_seconds": 6,
+  "status": "ok"
+}
+```
+
+#### 3. View All Tracked IPs Across the Cluster:
+```bash
+gleam run -- rate-limit all
 ```
 
 ---
 
-## 7. Step-by-Step Tutorials & Manuals
-
-### Tutorial 1: Running Emergency Vella AI Optimization
-
-Engage the Vella AI Optimizer-Tuner to scan system load and auto-tune runtime parameters:
+### Tutorial 2: Running Emergency Vella AI Optimization
 
 ```bash
 cd cli
@@ -186,24 +122,9 @@ cd cli
 gleam run -- vella-optimize
 ```
 
-**Output:**
-```json
-{
-  "vella_engine_status": "Vella AI Optimizer-Tuner Active",
-  "predicted_task_delay_seconds": 0,
-  "tuned_semantic_cache_threshold": 0.85,
-  "tuned_circuit_breaker_cooldown_seconds": 30,
-  "tuned_compression_deviation": 1.5,
-  "tuned_timeseries_bucket_interval_ms": 60,
-  "tuned_rag_chunk_size_bytes": 512,
-  "recommended_storage_tier": "Memory",
-  "optimization_mode": "Autonomous High-Performance Production"
-}
-```
-
 ---
 
-### Tutorial 2: Vector Similarity Search & Semantic Embedding
+### Tutorial 3: Vector Similarity Search & Semantic Embedding
 
 ```bash
 # Perform cosine similarity search on embeddings
@@ -212,16 +133,16 @@ gleam run -- vector-search "high frequency telemetry streaming"
 
 ---
 
-### Tutorial 3: Multi-Model Converged Queries
+### Tutorial 4: Multi-Model Converged Queries
 
 ```bash
 # Blended Relational + JSON + Full-Text Search + Vector search
-gleam run -- multimodel-query "primary edge sensor"
+gleam run -- multimodel-query "primary edge sensor type:node_sensor"
 ```
 
 ---
 
-### Tutorial 4: Local-First CRDT Edge Synchronization
+### Tutorial 5: Local-First CRDT Edge Synchronization
 
 ```bash
 # View CRDT state
@@ -233,23 +154,27 @@ gleam run -- crdt-sync '{"key":"pump_01:flow","value":"120L/min"}'
 
 ---
 
-### Tutorial 5: Real-Time Multi-Database Querying
+### Tutorial 6: Real-Time Multi-Database Querying
 
 ```bash
 # Query SQLite
 gleam run -- db-query sqlite "SELECT 42 as answer, 'Yoda' as system"
 
-# Execute Redis in-memory commands
+# Execute Redis in-memory commands (Strings, Hashes, Lists, Sets, ZSets)
 gleam run -- db-query redis "SET node:primary active"
-gleam run -- db-query redis "GET node:primary"
+gleam run -- db-query redis "HSET device:alpha temp 45.2 status active"
+gleam run -- db-query redis "ZRANGE throughput_rank 0 -1"
 
-# Run AI Query Optimizer-Tuner
-gleam run -- db-tune "SELECT * FROM telemetry WHERE sensor_id = 4"
+# Query MongoDB
+gleam run -- db-query mongodb 'db.telemetry_events.find({"status":"critical_surge"})'
+
+# Search Elasticsearch
+gleam run -- db-query elasticsearch 'transducer spike'
 ```
 
 ---
 
-### Tutorial 6: Terminal TUI Watcher & Telemetry Export
+### Tutorial 7: Terminal TUI Watcher & Telemetry Export
 
 ```bash
 # Real-time full-screen terminal monitor
@@ -261,12 +186,16 @@ gleam run -- export csv > yoda_export.csv
 
 ---
 
-## 8. Complete API & CLI Reference
+## 4. Complete API & CLI Reference
 
 ### REST API Endpoints
 
 | Method | Endpoint | Description | Request Body | Response Format |
 |---|---|---|---|---|
+| `GET` | `/api/rate_limit/status?ip=<ip>`| Returns remaining quota & reset countdown | None | JSON IP Quota Status |
+| `GET` | `/api/rate_limit/all` | Lists all tracked IPs and rate limit states | None | JSON Tracked IPs Array |
+| `POST` | `/api/rate_limit/config` | Dynamically configures `limit` & `window` | Query params | `{"status":"rate_limiter_configured",...}` |
+| `POST` | `/api/unban` | Resets rate limit counter for an IP | `text/plain` | `{"status":"unbanned"}` |
 | `GET` | `/api/vella/optimize` | Runs Vella AI System Optimizer-Tuner | None | JSON Vella Tuning Plan |
 | `POST` | `/api/vector/search` | Cosine similarity vector search | `text/plain` | JSON Array of scored vectors |
 | `POST` | `/api/vector/insert` | Embeds and stores vector | `text/plain` | `{"id":"...","status":"..."}` |
@@ -282,7 +211,6 @@ gleam run -- export csv > yoda_export.csv
 | `GET` | `/api/forecast` | Linear regression trend forecast | None | `{"trend":"climbing","forecast_5s":83.1}` |
 | `GET` | `/api/export?format=csv` | Telemetry CSV data dump | None | RFC 4180 CSV |
 | `GET` | `/api/audit_verify` | Verifies cryptographic ledger integrity | None | `{"verified":true,"status":"..."}` |
-| `POST` | `/api/unban` | Resets rate limit counter | `text/plain` | `{"status":"unbanned"}` |
 
 ---
 
@@ -292,6 +220,9 @@ gleam run -- export csv > yoda_export.csv
 yoda [COMMAND] [ARGUMENTS...]
 
 Commands:
+  rate-limit status [ip]     Check remaining quota and reset timer for a client IP
+  rate-limit set <lim> <win> Set variable rate limit (max_requests and window_seconds)
+  rate-limit all             List all actively tracked client IPs and their rate limit states
   vella-optimize             Run emergency Vella AI Optimizer-Tuner on system hardware and telemetry queues
   vector-search <text>       Search vector database via cosine similarity and semantic embeddings
   vector-insert <id> <text>  Embed and insert text vector into vector store
@@ -322,11 +253,13 @@ Commands:
 
 ---
 
-## 9. Configuration & Environment Variables
+## 5. Configuration & Environment Variables
 
 | Variable | Type | Default | Description |
 |---|---|---|---|
 | `PORT` | `Integer` | `8000` | HTTP and WebSocket listening port for Mist |
+| `RATE_LIMIT_MAX_REQUESTS`| `Integer` | `100` | Default maximum allowed requests per window |
+| `RATE_LIMIT_WINDOW_SECS` | `Integer` | `60` | Default variable time window in seconds |
 | `WS_TOKEN` | `String` | — | Required query token for WebSocket authentication |
 | `HFT_DEST_PORT` | `Integer` | `8080` | UDP ingestion listening port for telemetry datagrams |
 | `AI_GATEWAY_KEY` | `String` | `no_key` | OpenAI API Bearer key for AI Optimizer-Tuner & Vector Embeddings |
@@ -335,7 +268,7 @@ Commands:
 
 ---
 
-## 10. License & Contributing
+## 6. License & Contributing
 
 Project Yoda is open-source software licensed under the [Apache-2.0 License](LICENSE).
 

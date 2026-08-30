@@ -76,12 +76,17 @@ pub fn crdt_get_state() -> String
 @external(erlang, "cli_ffi", "crdt_sync")
 pub fn crdt_sync_state(json: String) -> String
 
+@external(erlang, "cli_ffi", "rate_limit_status")
+pub fn rate_limit_ip_status(ip: String) -> String
+
+@external(erlang, "cli_ffi", "rate_limit_set")
+pub fn rate_limit_configure(limit: String, window: String) -> String
+
+@external(erlang, "cli_ffi", "rate_limit_all")
+pub fn rate_limit_view_all() -> String
+
 @external(erlang, "cli_ffi", "get_argv")
 pub fn get_argv() -> List(String)
-
-@external(erlang, "cli_ffi", "replay")
-pub fn replay_events(limit: String) -> String
-
 
 pub fn main() {
   let app =
@@ -99,7 +104,43 @@ pub fn main() {
       at: ["version"],
       do: glint.command_help(
         "Prints CLI version",
-        fn() { glint.command(fn(_, _, _) { io.println("Yoda CLI version 1.4.0 (Vella Engine Optimized)") }) },
+        fn() { glint.command(fn(_, _, _) { io.println("Yoda CLI version 1.5.0 (Variable Rate Limiter & High-Precision Quotas)") }) },
+      ),
+    )
+    |> glint.add(
+      at: ["rate-limit", "status"],
+      do: glint.command_help(
+        "Check remaining quota and reset timer for a client IP",
+        fn() {
+          glint.command(fn(_named, args, _flags) {
+            let ip = case args {
+              [target_ip, ..] -> target_ip
+              _ -> "127.0.0.1"
+            }
+            io.println(rate_limit_ip_status(ip))
+          })
+        },
+      ),
+    )
+    |> glint.add(
+      at: ["rate-limit", "set"],
+      do: glint.command_help(
+        "Set variable rate limit: yoda rate-limit set <max_requests> <window_seconds>",
+        fn() {
+          glint.command(fn(_named, args, _flags) {
+            case args {
+              [limit, window, ..] -> io.println(rate_limit_configure(limit, window))
+              _ -> io.println("Usage: yoda rate-limit set <limit> <window_seconds>")
+            }
+          })
+        },
+      ),
+    )
+    |> glint.add(
+      at: ["rate-limit", "all"],
+      do: glint.command_help(
+        "List all actively tracked client IPs and their rate limit states",
+        fn() { glint.command(fn(_, _, _) { io.println(rate_limit_view_all()) }) },
       ),
     )
     |> glint.add(
@@ -350,20 +391,6 @@ pub fn main() {
             case args {
               [anomaly, ..] -> io.println(ai_diagnose(anomaly))
               _ -> io.println("Usage: yoda diagnose <anomaly_text>")
-            }
-          })
-        },
-      ),
-    )
-    |> glint.add(
-      at: ["replay"],
-      do: glint.command_help(
-        "Replay historical telemetry incidents for time-travel analysis",
-        fn() {
-          glint.command(fn(_named, args, _flags) {
-            case args {
-              [limit, ..] -> io.println(replay_events(limit))
-              _ -> io.println(replay_events("100"))
             }
           })
         },
