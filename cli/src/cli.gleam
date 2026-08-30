@@ -148,6 +148,12 @@ pub fn mongo_collections() -> String
 @external(erlang, "cli_ffi", "mongo_stats")
 pub fn mongo_get_stats() -> String
 
+@external(erlang, "cli_ffi", "mongo_ai_tune")
+pub fn mongo_ai_tune(query: String) -> String
+
+@external(erlang, "cli_ffi", "mongo_ai_schema")
+pub fn mongo_ai_schema(coll: String) -> String
+
 @external(erlang, "cli_ffi", "cassandra_cql")
 pub fn cassandra_cql(cql: String) -> String
 
@@ -351,6 +357,35 @@ pub fn main() {
       do: glint.command_help(
         "Show MongoDB engine stats (documents, inserts, finds, updates, deletes)",
         fn() { glint.command(fn(_, _, _) { io.println(mongo_get_stats()) }) },
+      ),
+    )
+    |> glint.add(
+      at: ["mongo", "ai-tune"],
+      do: glint.command_help(
+        "Run Autonomous AI MongoDB Query & Pipeline Optimizer: yoda mongo ai-tune '<query_or_pipeline>'",
+        fn() {
+          glint.command(fn(_named, args, _flags) {
+            case args {
+              [query, ..] -> io.println(mongo_ai_tune(query))
+              _ -> io.println("Usage: yoda mongo ai-tune '<query_or_pipeline>'")
+            }
+          })
+        },
+      ),
+    )
+    |> glint.add(
+      at: ["mongo", "ai-schema"],
+      do: glint.command_help(
+        "Run Autonomous AI Schema Uniformity and ESR Index analysis: yoda mongo ai-schema <collection>",
+        fn() {
+          glint.command(fn(_named, args, _flags) {
+            let coll = case args {
+              [c, ..] -> c
+              _ -> "telemetry_events"
+            }
+            io.println(mongo_ai_schema(coll))
+          })
+        },
       ),
     )
     |> glint.add(

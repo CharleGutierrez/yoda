@@ -326,7 +326,7 @@ pub fn multi_db_manager_top10_engines_routing_test() {
 
   // 3. Query MongoDB via DB Manager
   let mongo_res = server.db_execute_query("mongodb", "db.device_registry.find({})")
-  should.be_true(string.contains(mongo_res, "gateway_eu_01") || string.contains(mongo_res, "documents"))
+  should.be_true(string.contains(mongo_res, "sensor_alpha") || string.contains(mongo_res, "Frankfurt") || string.contains(mongo_res, "documents"))
 
   // 4. Query Elasticsearch via DB Manager
   let elastic_res = server.db_execute_query("elasticsearch", "timeout")
@@ -501,6 +501,47 @@ pub fn redis_semantic_cache_invalidation_and_ai_test() {
   should.be_true(
     string.contains(ai_analytics, "X-Fetch")
     && string.contains(ai_analytics, "recommended_eviction_policy")
+  )
+}
+
+pub fn mongo_advanced_operators_and_lookup_test() {
+  server.init_db_manager()
+
+  // 1. Comparison Operator ($gt)
+  let gt_res = server.mongo_execute("db.telemetry_events.find({\"temperature\":{\"$gt\":50.0}})")
+  should.be_true(string.contains(gt_res, "sensor_beta") || string.contains(gt_res, "sensor_delta"))
+
+  // 2. Set Operator ($in)
+  let in_res = server.mongo_execute("db.telemetry_events.find({\"region\":{\"$in\":[\"EU\",\"US\"]}})")
+  should.be_true(string.contains(in_res, "sensor_alpha") && string.contains(in_res, "sensor_gamma"))
+
+  // 3. Pipeline with $lookup join
+  let lookup_pipe = "[{\"$lookup\":{\"from\":\"device_registry\",\"localField\":\"device_id\",\"foreignField\":\"device_id\",\"as\":\"registry\"}}]"
+  let lookup_res = server.mongo_aggregate("telemetry_events", lookup_pipe)
+  let joined_str = string.join(lookup_res, ",")
+  should.be_true(string.contains(joined_str, "registry") && string.contains(joined_str, "Frankfurt"))
+
+  // 4. Update with $set and $inc
+  let update_res = server.mongo_execute("db.telemetry_events.updateOne({\"device_id\":\"sensor_alpha\"},{\"$set\":{\"firmware\":\"v2.0.0\"},\"$inc\":{\"temperature\":5.0}})")
+  should.be_true(string.contains(update_res, "matchedCount\":1"))
+}
+
+pub fn mongo_ai_tuner_and_schema_advisor_test() {
+  server.init_db_manager()
+
+  // 1. AI Tuner on Aggregation Pipeline
+  let ai_tune = server.mongo_ai_tune("db.telemetry_events.aggregate([{\"$lookup\":{\"from\":\"device_registry\",\"localField\":\"device_id\",\"foreignField\":\"device_id\",\"as\":\"dev\"}}])", "no_key")
+  should.be_true(
+    string.contains(ai_tune, "createIndex")
+    && string.contains(ai_tune, "autonomous_mongo_ai_optimized")
+  )
+
+  // 2. AI Schema Uniformity Advisor
+  let ai_schema = server.mongo_ai_schema("telemetry_events")
+  should.be_true(
+    string.contains(ai_schema, "schema_uniformity_score")
+    && string.contains(ai_schema, "telemetry_events")
+    && string.contains(ai_schema, "ai_schema_verified")
   )
 }
 

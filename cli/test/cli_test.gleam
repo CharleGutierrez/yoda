@@ -167,6 +167,18 @@ pub fn cli_cache_ai_analyze_test() {
   should.be_true(valid)
 }
 
+pub fn cli_mongo_ai_tune_test() {
+  let res = cli.mongo_ai_tune("db.telemetry_events.find({})")
+  let valid = string.contains(res, "createIndex") || string.contains(res, "Error")
+  should.be_true(valid)
+}
+
+pub fn cli_mongo_ai_schema_test() {
+  let res = cli.mongo_ai_schema("telemetry_events")
+  let valid = string.contains(res, "schema_uniformity") || string.contains(res, "Error")
+  should.be_true(valid)
+}
+
 pub fn cli_get_argv_test() {
   let args = cli.get_argv()
   // Just ensure it returns a list

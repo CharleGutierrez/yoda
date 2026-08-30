@@ -183,6 +183,12 @@ pub fn mongo_drop_collection(coll: String) -> Nil
 @external(erlang, "mongo_engine", "aggregate")
 pub fn mongo_aggregate(coll: String, pipeline: String) -> List(String)
 
+@external(erlang, "mongo_engine", "ai_tune_mongo")
+pub fn mongo_ai_tune(query: String, key: String) -> String
+
+@external(erlang, "mongo_engine", "ai_schema_advisor")
+pub fn mongo_ai_schema(coll: String) -> String
+
 @external(erlang, "mongo_engine", "get_engine_stats")
 pub fn mongo_get_stats() -> String
 
@@ -574,6 +580,23 @@ pub fn main() {
               ["api", "mongo", "stats"] -> {
                 let stats = mongo_get_stats()
                 wisp.json_response(stats, 200)
+              }
+              ["api", "mongo", "ai_tune"] -> {
+                use req_body <- wisp.require_string_body(req)
+                let key = case os_helper.get_env("AI_GATEWAY_KEY") {
+                  Ok(k) -> k
+                  Error(_) -> "no_key"
+                }
+                let report = mongo_ai_tune(string.trim(req_body), key)
+                wisp.json_response(report, 200)
+              }
+              ["api", "mongo", "ai_schema"] -> {
+                let coll = case list.key_find(wisp.get_query(req), "collection") {
+                  Ok(c) -> c
+                  Error(_) -> "telemetry_events"
+                }
+                let report = mongo_ai_schema(coll)
+                wisp.json_response(report, 200)
               }
               // ── End MongoDB routes ─────────────────────────────────────────────
               // ── Cassandra / CQL routes ─────────────────────────────────────────

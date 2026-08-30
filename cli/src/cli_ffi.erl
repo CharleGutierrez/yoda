@@ -11,6 +11,7 @@
          mongo_command/1, mongo_insert/2, mongo_find/2, mongo_findone/2,
          mongo_count/2, mongo_update/3, mongo_delete/2, mongo_aggregate/2,
          mongo_collections/0, mongo_stats/0,
+         mongo_ai_tune/1, mongo_ai_schema/1,
          cassandra_cql/1, cassandra_ring/0, cassandra_stats/0,
          cassandra_ai_tune/1, cassandra_ai_ring/0,
          cassandra_tables/0, cassandra_keyspaces/0,
@@ -482,6 +483,13 @@ mongo_collections() ->
 
 mongo_stats() ->
     mongo_get("/api/mongo/stats").
+
+mongo_ai_tune(QueryBin) ->
+    mongo_post("/api/mongo/ai_tune", binary_to_list(QueryBin)).
+
+mongo_ai_schema(CollBin) ->
+    Coll = binary_to_list(CollBin),
+    mongo_get("/api/mongo/ai_schema?collection=" ++ Coll).
 
 % ====================================================================
 %  Cassandra / CQL CLI helpers
