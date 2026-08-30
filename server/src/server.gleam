@@ -177,6 +177,51 @@ pub fn redis_get_cache_stats() -> String
 @external(erlang, "redis_cache", "flush_cache")
 pub fn redis_flush_cache() -> String
 
+@external(erlang, "cassandra_engine", "execute_cql")
+pub fn cassandra_execute_cql(cql: String) -> String
+
+@external(erlang, "cassandra_engine", "get_ring_json")
+pub fn cassandra_get_ring() -> String
+
+@external(erlang, "cassandra_engine", "get_stats_json")
+pub fn cassandra_get_stats() -> String
+
+@external(erlang, "cassandra_engine", "ai_tune")
+pub fn cassandra_ai_tune(cql: String, key: String) -> String
+
+@external(erlang, "cassandra_engine", "ai_analyze_ring")
+pub fn cassandra_ai_analyze_ring() -> String
+
+@external(erlang, "cassandra_engine", "list_tables")
+pub fn cassandra_list_tables() -> List(String)
+
+@external(erlang, "cassandra_engine", "list_keyspaces")
+pub fn cassandra_list_keyspaces() -> List(String)
+
+@external(erlang, "elastic_engine", "execute_search")
+pub fn elastic_search(query: String) -> String
+
+@external(erlang, "elastic_engine", "search_index")
+pub fn elastic_search_index(index: String, query: String) -> String
+
+@external(erlang, "elastic_engine", "index_doc")
+pub fn elastic_index_doc(index: String, id: String, doc: String) -> String
+
+@external(erlang, "elastic_engine", "get_indices_json")
+pub fn elastic_get_indices() -> String
+
+@external(erlang, "elastic_engine", "get_stats_json")
+pub fn elastic_get_stats() -> String
+
+@external(erlang, "elastic_engine", "ai_tune")
+pub fn elastic_ai_tune(query: String, key: String) -> String
+
+@external(erlang, "elastic_engine", "ai_analyze_index")
+pub fn elastic_ai_analyze_index(index: String) -> String
+
+@external(erlang, "elastic_engine", "list_indices")
+pub fn elastic_list_indices() -> List(String)
+
 @external(erlang, "redis_cache", "execute_cached_query")
 pub fn redis_execute_cached_query(engine: String, query: String) -> String
 
@@ -467,6 +512,91 @@ pub fn main() {
                 wisp.json_response(stats, 200)
               }
               // ── End MongoDB routes ─────────────────────────────────────────────
+              // ── Cassandra / CQL routes ─────────────────────────────────────────
+              ["api", "cassandra", "cql"] -> {
+                use req_body <- wisp.require_string_body(req)
+                let result = cassandra_execute_cql(string.trim(req_body))
+                wisp.json_response(result, 200)
+              }
+              ["api", "cassandra", "ring"] -> {
+                let ring = cassandra_get_ring()
+                wisp.json_response(ring, 200)
+              }
+              ["api", "cassandra", "stats"] -> {
+                let stats = cassandra_get_stats()
+                wisp.json_response(stats, 200)
+              }
+              ["api", "cassandra", "ai_tune"] -> {
+                use req_body <- wisp.require_string_body(req)
+                let key = case os_helper.get_env("AI_GATEWAY_KEY") {
+                  Ok(k) -> k
+                  Error(_) -> "no_key"
+                }
+                let report = cassandra_ai_tune(string.trim(req_body), key)
+                wisp.json_response(report, 200)
+              }
+              ["api", "cassandra", "ai_analyze_ring"] -> {
+                let report = cassandra_ai_analyze_ring()
+                wisp.json_response(report, 200)
+              }
+              ["api", "cassandra", "tables"] -> {
+                let tables = cassandra_list_tables()
+                wisp.json_response("{\"tables\":[" <> string.join(list.map(tables, fn(t) { "\"" <> t <> "\"" }), ",") <> "]}", 200)
+              }
+              ["api", "cassandra", "keyspaces"] -> {
+                let kss = cassandra_list_keyspaces()
+                wisp.json_response("{\"keyspaces\":[" <> string.join(list.map(kss, fn(k) { "\"" <> k <> "\"" }), ",") <> "]}", 200)
+              }
+              // ── End Cassandra routes ───────────────────────────────────────────
+              // ── Elasticsearch / Lucene routes ──────────────────────────────────
+              ["api", "elastic", "search"] -> {
+                use req_body <- wisp.require_string_body(req)
+                let index = case list.key_find(wisp.get_query(req), "index") {
+                  Ok(i) -> i
+                  Error(_) -> "yoda_logs"
+                }
+                let result = elastic_search_index(index, string.trim(req_body))
+                wisp.json_response(result, 200)
+              }
+              ["api", "elastic", "index"] -> {
+                use req_body <- wisp.require_string_body(req)
+                let index = case list.key_find(wisp.get_query(req), "index") {
+                  Ok(i) -> i
+                  Error(_) -> "yoda_logs"
+                }
+                let id = case list.key_find(wisp.get_query(req), "id") {
+                  Ok(d) -> d
+                  Error(_) -> "doc_auto"
+                }
+                let doc_id = elastic_index_doc(index, id, string.trim(req_body))
+                wisp.json_response("{\"_index\":\"" <> index <> "\",\"_id\":\"" <> doc_id <> "\",\"result\":\"created\"}", 201)
+              }
+              ["api", "elastic", "indices"] -> {
+                let indices = elastic_get_indices()
+                wisp.json_response(indices, 200)
+              }
+              ["api", "elastic", "stats"] -> {
+                let stats = elastic_get_stats()
+                wisp.json_response(stats, 200)
+              }
+              ["api", "elastic", "ai_tune"] -> {
+                use req_body <- wisp.require_string_body(req)
+                let key = case os_helper.get_env("AI_GATEWAY_KEY") {
+                  Ok(k) -> k
+                  Error(_) -> "no_key"
+                }
+                let report = elastic_ai_tune(string.trim(req_body), key)
+                wisp.json_response(report, 200)
+              }
+              ["api", "elastic", "ai_analyze_index"] -> {
+                let index = case list.key_find(wisp.get_query(req), "index") {
+                  Ok(i) -> i
+                  Error(_) -> "yoda_logs"
+                }
+                let report = elastic_ai_analyze_index(index)
+                wisp.json_response(report, 200)
+              }
+              // ── End Elasticsearch routes ───────────────────────────────────────
               ["api", "db", "engines"] -> {
                 let json = db_list_engines()
                 wisp.json_response(json, 200)

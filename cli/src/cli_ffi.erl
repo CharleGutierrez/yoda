@@ -8,7 +8,12 @@
          cache_stats/0, cache_flush/0, cache_query/2,
          mongo_command/1, mongo_insert/2, mongo_find/2, mongo_findone/2,
          mongo_count/2, mongo_update/3, mongo_delete/2, mongo_aggregate/2,
-         mongo_collections/0, mongo_stats/0]).
+         mongo_collections/0, mongo_stats/0,
+         cassandra_cql/1, cassandra_ring/0, cassandra_stats/0,
+         cassandra_ai_tune/1, cassandra_ai_ring/0,
+         cassandra_tables/0, cassandra_keyspaces/0,
+         elastic_search/2, elastic_index/3, elastic_indices/0,
+         elastic_stats/0, elastic_ai_tune/1, elastic_ai_analyze/1]).
 
 get_base_url() ->
     case os:getenv("YODA_SERVER_URL") of
@@ -389,6 +394,94 @@ mongo_collections() ->
 
 mongo_stats() ->
     mongo_get("/api/mongo/stats").
+
+% ====================================================================
+%  Cassandra / CQL CLI helpers
+% ====================================================================
+cassandra_post(Path, Body) ->
+    inets:start(),
+    Base = get_base_url(),
+    Url = Base ++ Path,
+    case httpc:request(post, {Url, [], "text/plain", Body}, [], []) of
+        {ok, {{_Version, 200, _}, _Headers, RespBody}} -> list_to_binary(RespBody);
+        {ok, {{_Version, Code, _}, _Headers, _}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
+    end.
+
+cassandra_get(Path) ->
+    inets:start(),
+    Base = get_base_url(),
+    case httpc:request(get, {Base ++ Path, []}, [], []) of
+        {ok, {{_Version, 200, _}, _Headers, Body}} -> list_to_binary(Body);
+        {ok, {{_Version, Code, _}, _Headers, _}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
+    end.
+
+cassandra_cql(CqlBin) ->
+    cassandra_post("/api/cassandra/cql", binary_to_list(CqlBin)).
+
+cassandra_ring() ->
+    cassandra_get("/api/cassandra/ring").
+
+cassandra_stats() ->
+    cassandra_get("/api/cassandra/stats").
+
+cassandra_ai_tune(CqlBin) ->
+    cassandra_post("/api/cassandra/ai_tune", binary_to_list(CqlBin)).
+
+cassandra_ai_ring() ->
+    cassandra_get("/api/cassandra/ai_analyze_ring").
+
+cassandra_tables() ->
+    cassandra_get("/api/cassandra/tables").
+
+cassandra_keyspaces() ->
+    cassandra_get("/api/cassandra/keyspaces").
+
+% ====================================================================
+%  Elasticsearch / Lucene CLI helpers
+% ====================================================================
+elastic_post(Path, Body) ->
+    inets:start(),
+    Base = get_base_url(),
+    Url = Base ++ Path,
+    case httpc:request(post, {Url, [], "application/json", Body}, [], []) of
+        {ok, {{_Version, 200, _}, _Headers, RespBody}} -> list_to_binary(RespBody);
+        {ok, {{_Version, 201, _}, _Headers, RespBody}} -> list_to_binary(RespBody);
+        {ok, {{_Version, Code, _}, _Headers, _}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
+    end.
+
+elastic_get(Path) ->
+    inets:start(),
+    Base = get_base_url(),
+    case httpc:request(get, {Base ++ Path, []}, [], []) of
+        {ok, {{_Version, 200, _}, _Headers, Body}} -> list_to_binary(Body);
+        {ok, {{_Version, Code, _}, _Headers, _}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
+    end.
+
+elastic_search(IndexBin, QueryBin) ->
+    Index = binary_to_list(IndexBin),
+    elastic_post("/api/elastic/search?index=" ++ Index, binary_to_list(QueryBin)).
+
+elastic_index(IndexBin, IdBin, DocBin) ->
+    Index = binary_to_list(IndexBin),
+    Id = binary_to_list(IdBin),
+    elastic_post("/api/elastic/index?index=" ++ Index ++ "&id=" ++ Id, binary_to_list(DocBin)).
+
+elastic_indices() ->
+    elastic_get("/api/elastic/indices").
+
+elastic_stats() ->
+    elastic_get("/api/elastic/stats").
+
+elastic_ai_tune(QueryBin) ->
+    elastic_post("/api/elastic/ai_tune", binary_to_list(QueryBin)).
+
+elastic_ai_analyze(IndexBin) ->
+    Index = binary_to_list(IndexBin),
+    elastic_get("/api/elastic/ai_analyze_index?index=" ++ Index).
 
 get_argv() ->
     Args = init:get_plain_arguments(),

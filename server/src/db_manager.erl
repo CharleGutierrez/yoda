@@ -60,9 +60,17 @@ execute_query(EngineBin, QueryBin) ->
             mongo_engine:execute_mongo(QueryBin);
         "elasticsearch" ->
             elastic_engine:execute_search(QueryBin);
+        "elastic" ->
+            elastic_engine:execute_search(QueryBin);
+        "opensearch" ->
+            elastic_engine:execute_search(QueryBin);
         "snowflake" ->
             olap_engine:execute_olap(QueryBin);
         "scylla_cassandra" ->
+            cassandra_engine:execute_cql(QueryBin);
+        "cassandra" ->
+            cassandra_engine:execute_cql(QueryBin);
+        "scylla" ->
             cassandra_engine:execute_cql(QueryBin);
         _ ->
             list_to_binary(io_lib:format("{\"error\":\"Unknown database engine: ~s\"}", [Engine]))

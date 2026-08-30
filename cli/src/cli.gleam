@@ -124,6 +124,45 @@ pub fn mongo_collections() -> String
 @external(erlang, "cli_ffi", "mongo_stats")
 pub fn mongo_get_stats() -> String
 
+@external(erlang, "cli_ffi", "cassandra_cql")
+pub fn cassandra_cql(cql: String) -> String
+
+@external(erlang, "cli_ffi", "cassandra_ring")
+pub fn cassandra_ring() -> String
+
+@external(erlang, "cli_ffi", "cassandra_stats")
+pub fn cassandra_stats() -> String
+
+@external(erlang, "cli_ffi", "cassandra_ai_tune")
+pub fn cassandra_ai_tune(cql: String) -> String
+
+@external(erlang, "cli_ffi", "cassandra_ai_ring")
+pub fn cassandra_ai_ring() -> String
+
+@external(erlang, "cli_ffi", "cassandra_tables")
+pub fn cassandra_tables() -> String
+
+@external(erlang, "cli_ffi", "cassandra_keyspaces")
+pub fn cassandra_keyspaces() -> String
+
+@external(erlang, "cli_ffi", "elastic_search")
+pub fn elastic_search(index: String, query: String) -> String
+
+@external(erlang, "cli_ffi", "elastic_index")
+pub fn elastic_index(index: String, id: String, doc: String) -> String
+
+@external(erlang, "cli_ffi", "elastic_indices")
+pub fn elastic_indices() -> String
+
+@external(erlang, "cli_ffi", "elastic_stats")
+pub fn elastic_stats() -> String
+
+@external(erlang, "cli_ffi", "elastic_ai_tune")
+pub fn elastic_ai_tune(query: String) -> String
+
+@external(erlang, "cli_ffi", "elastic_ai_analyze")
+pub fn elastic_ai_analyze(index: String) -> String
+
 @external(erlang, "cli_ffi", "get_argv")
 pub fn get_argv() -> List(String)
 
@@ -273,6 +312,141 @@ pub fn main() {
       do: glint.command_help(
         "Show MongoDB engine stats (documents, inserts, finds, updates, deletes)",
         fn() { glint.command(fn(_, _, _) { io.println(mongo_get_stats()) }) },
+      ),
+    )
+    |> glint.add(
+      at: ["cassandra", "cql"],
+      do: glint.command_help(
+        "Execute CQL query: yoda cassandra cql \"SELECT * FROM telemetry_by_device WHERE device_id = 'device_alpha';\"",
+        fn() {
+          glint.command(fn(_named, args, _flags) {
+            case args {
+              [cql, ..] -> io.println(cassandra_cql(cql))
+              _ -> io.println("Usage: yoda cassandra cql \"<cql_statement>\"")
+            }
+          })
+        },
+      ),
+    )
+    |> glint.add(
+      at: ["cassandra", "ring"],
+      do: glint.command_help(
+        "Show Murmur3 token distribution ring and virtual node topology",
+        fn() { glint.command(fn(_, _, _) { io.println(cassandra_ring()) }) },
+      ),
+    )
+    |> glint.add(
+      at: ["cassandra", "stats"],
+      do: glint.command_help(
+        "Show Cassandra/ScyllaDB engine telemetry (writes, reads, tombstones, partitions)",
+        fn() { glint.command(fn(_, _, _) { io.println(cassandra_stats()) }) },
+      ),
+    )
+    |> glint.add(
+      at: ["cassandra", "ai-tune"],
+      do: glint.command_help(
+        "Run Autonomous AI CQL Optimizer on a query: yoda cassandra ai-tune \"<cql>\"",
+        fn() {
+          glint.command(fn(_named, args, _flags) {
+            case args {
+              [cql, ..] -> io.println(cassandra_ai_tune(cql))
+              _ -> io.println("Usage: yoda cassandra ai-tune \"<cql>\"")
+            }
+          })
+        },
+      ),
+    )
+    |> glint.add(
+      at: ["cassandra", "ai-ring"],
+      do: glint.command_help(
+        "Run Autonomous AI Partition Hotspot & Ring Skew analysis",
+        fn() { glint.command(fn(_, _, _) { io.println(cassandra_ai_ring()) }) },
+      ),
+    )
+    |> glint.add(
+      at: ["cassandra", "tables"],
+      do: glint.command_help(
+        "List all tables in current Cassandra keyspace",
+        fn() { glint.command(fn(_, _, _) { io.println(cassandra_tables()) }) },
+      ),
+    )
+    |> glint.add(
+      at: ["cassandra", "keyspaces"],
+      do: glint.command_help(
+        "List all Cassandra keyspaces",
+        fn() { glint.command(fn(_, _, _) { io.println(cassandra_keyspaces()) }) },
+      ),
+    )
+    |> glint.add(
+      at: ["elastic", "search"],
+      do: glint.command_help(
+        "Execute BM25 Lucene search or Query DSL: yoda elastic search <index> '<query_or_dsl>'",
+        fn() {
+          glint.command(fn(_named, args, _flags) {
+            case args {
+              [index, query, ..] -> io.println(elastic_search(index, query))
+              [query, ..] -> io.println(elastic_search("yoda_logs", query))
+              _ -> io.println("Usage: yoda elastic search <index> '<query_or_dsl>'")
+            }
+          })
+        },
+      ),
+    )
+    |> glint.add(
+      at: ["elastic", "index"],
+      do: glint.command_help(
+        "Index document into Elasticsearch: yoda elastic index <index> <id> '<json_doc>'",
+        fn() {
+          glint.command(fn(_named, args, _flags) {
+            case args {
+              [index, id, doc, ..] -> io.println(elastic_index(index, id, doc))
+              _ -> io.println("Usage: yoda elastic index <index> <id> '<json_doc>'")
+            }
+          })
+        },
+      ),
+    )
+    |> glint.add(
+      at: ["elastic", "indices"],
+      do: glint.command_help(
+        "List all Elasticsearch indices and shard statuses",
+        fn() { glint.command(fn(_, _, _) { io.println(elastic_indices()) }) },
+      ),
+    )
+    |> glint.add(
+      at: ["elastic", "stats"],
+      do: glint.command_help(
+        "Show Elasticsearch engine telemetry (documents, terms, searches, aggregations)",
+        fn() { glint.command(fn(_, _, _) { io.println(elastic_stats()) }) },
+      ),
+    )
+    |> glint.add(
+      at: ["elastic", "ai-tune"],
+      do: glint.command_help(
+        "Run Autonomous AI Lucene Search Optimizer: yoda elastic ai-tune '<query_or_dsl>'",
+        fn() {
+          glint.command(fn(_named, args, _flags) {
+            case args {
+              [query, ..] -> io.println(elastic_ai_tune(query))
+              _ -> io.println("Usage: yoda elastic ai-tune '<query_or_dsl>'")
+            }
+          })
+        },
+      ),
+    )
+    |> glint.add(
+      at: ["elastic", "ai-analyze"],
+      do: glint.command_help(
+        "Analyze index BM25 term distribution and shard health: yoda elastic ai-analyze <index>",
+        fn() {
+          glint.command(fn(_named, args, _flags) {
+            let index = case args {
+              [idx, ..] -> idx
+              _ -> "yoda_logs"
+            }
+            io.println(elastic_ai_analyze(index))
+          })
+        },
       ),
     )
     |> glint.add(

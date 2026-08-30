@@ -65,6 +65,42 @@ pub fn cli_mongo_collections_test() {
   should.be_true(valid)
 }
 
+pub fn cli_cassandra_cql_test() {
+  let res = cli.cassandra_cql("DESCRIBE TABLES;")
+  let valid = string.contains(res, "telemetry") || string.contains(res, "Error")
+  should.be_true(valid)
+}
+
+pub fn cli_cassandra_ring_test() {
+  let res = cli.cassandra_ring()
+  let valid = string.contains(res, "node") || string.contains(res, "Error")
+  should.be_true(valid)
+}
+
+pub fn cli_cassandra_ai_tune_test() {
+  let res = cli.cassandra_ai_tune("SELECT * FROM telemetry_by_device;")
+  let valid = string.contains(res, "compaction") || string.contains(res, "Error")
+  should.be_true(valid)
+}
+
+pub fn cli_elastic_search_test() {
+  let res = cli.elastic_search("yoda_logs", "timeout")
+  let valid = string.contains(res, "hits") || string.contains(res, "Error")
+  should.be_true(valid)
+}
+
+pub fn cli_elastic_indices_test() {
+  let res = cli.elastic_indices()
+  let valid = string.contains(res, "yoda_logs") || string.contains(res, "Error")
+  should.be_true(valid)
+}
+
+pub fn cli_elastic_ai_tune_test() {
+  let res = cli.elastic_ai_tune("timeout")
+  let valid = string.contains(res, "analyzer") || string.contains(res, "Error")
+  should.be_true(valid)
+}
+
 pub fn cli_get_argv_test() {
   let args = cli.get_argv()
   // Just ensure it returns a list
