@@ -66,6 +66,10 @@ execute_query(EngineBin, QueryBin) ->
             elastic_engine:execute_search(QueryBin);
         "snowflake" ->
             olap_engine:execute_olap(QueryBin);
+        "clickhouse" ->
+            olap_engine:execute_olap(QueryBin);
+        "snowflake_clickhouse" ->
+            olap_engine:execute_olap(QueryBin);
         "scylla_cassandra" ->
             cassandra_engine:execute_cql(QueryBin);
         "cassandra" ->

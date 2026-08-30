@@ -222,6 +222,27 @@ pub fn elastic_ai_analyze_index(index: String) -> String
 @external(erlang, "elastic_engine", "list_indices")
 pub fn elastic_list_indices() -> List(String)
 
+@external(erlang, "olap_engine", "execute_olap")
+pub fn olap_execute(query: String) -> String
+
+@external(erlang, "olap_engine", "query_olap")
+pub fn olap_query(table: String, query: String) -> String
+
+@external(erlang, "olap_engine", "get_tables_json")
+pub fn olap_get_tables() -> String
+
+@external(erlang, "olap_engine", "get_stats_json")
+pub fn olap_get_stats() -> String
+
+@external(erlang, "olap_engine", "ai_tune")
+pub fn olap_ai_tune(query: String, key: String) -> String
+
+@external(erlang, "olap_engine", "ai_analyze_warehouse")
+pub fn olap_ai_analyze_warehouse() -> String
+
+@external(erlang, "olap_engine", "list_tables")
+pub fn olap_list_tables() -> List(String)
+
 @external(erlang, "redis_cache", "execute_cached_query")
 pub fn redis_execute_cached_query(engine: String, query: String) -> String
 
@@ -597,6 +618,56 @@ pub fn main() {
                 wisp.json_response(report, 200)
               }
               // ── End Elasticsearch routes ───────────────────────────────────────
+              // ── Snowflake / ClickHouse OLAP routes ─────────────────────────────
+              ["api", "olap", "query"] -> {
+                use req_body <- wisp.require_string_body(req)
+                let table = case list.key_find(wisp.get_query(req), "table") {
+                  Ok(t) -> t
+                  Error(_) -> "sensor_telemetry"
+                }
+                let result = olap_query(table, string.trim(req_body))
+                wisp.json_response(result, 200)
+              }
+              ["api", "snowflake", "query"] -> {
+                use req_body <- wisp.require_string_body(req)
+                let table = case list.key_find(wisp.get_query(req), "table") {
+                  Ok(t) -> t
+                  Error(_) -> "financial_trades"
+                }
+                let result = olap_query(table, string.trim(req_body))
+                wisp.json_response(result, 200)
+              }
+              ["api", "clickhouse", "query"] -> {
+                use req_body <- wisp.require_string_body(req)
+                let table = case list.key_find(wisp.get_query(req), "table") {
+                  Ok(t) -> t
+                  Error(_) -> "sensor_telemetry"
+                }
+                let result = olap_query(table, string.trim(req_body))
+                wisp.json_response(result, 200)
+              }
+              ["api", "olap", "tables"] -> {
+                let tables = olap_get_tables()
+                wisp.json_response(tables, 200)
+              }
+              ["api", "olap", "stats"] -> {
+                let stats = olap_get_stats()
+                wisp.json_response(stats, 200)
+              }
+              ["api", "olap", "ai_tune"] -> {
+                use req_body <- wisp.require_string_body(req)
+                let key = case os_helper.get_env("AI_GATEWAY_KEY") {
+                  Ok(k) -> k
+                  Error(_) -> "no_key"
+                }
+                let report = olap_ai_tune(string.trim(req_body), key)
+                wisp.json_response(report, 200)
+              }
+              ["api", "olap", "ai_analyze"] -> {
+                let analysis = olap_ai_analyze_warehouse()
+                wisp.json_response(analysis, 200)
+              }
+              // ── End OLAP routes ────────────────────────────────────────────────
               ["api", "db", "engines"] -> {
                 let json = db_list_engines()
                 wisp.json_response(json, 200)

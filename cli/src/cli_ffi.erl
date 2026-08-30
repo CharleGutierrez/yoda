@@ -13,7 +13,9 @@
          cassandra_ai_tune/1, cassandra_ai_ring/0,
          cassandra_tables/0, cassandra_keyspaces/0,
          elastic_search/2, elastic_index/3, elastic_indices/0,
-         elastic_stats/0, elastic_ai_tune/1, elastic_ai_analyze/1]).
+         elastic_stats/0, elastic_ai_tune/1, elastic_ai_analyze/1,
+         olap_query/1, olap_tables/0, olap_stats/0,
+         olap_ai_tune/1, olap_ai_analyze/0]).
 
 get_base_url() ->
     case os:getenv("YODA_SERVER_URL") of
@@ -482,6 +484,43 @@ elastic_ai_tune(QueryBin) ->
 elastic_ai_analyze(IndexBin) ->
     Index = binary_to_list(IndexBin),
     elastic_get("/api/elastic/ai_analyze_index?index=" ++ Index).
+
+% ====================================================================
+%  Snowflake / ClickHouse OLAP CLI helpers
+% ====================================================================
+olap_post(Path, Body) ->
+    inets:start(),
+    Base = get_base_url(),
+    Url = Base ++ Path,
+    case httpc:request(post, {Url, [], "text/plain", Body}, [], []) of
+        {ok, {{_Version, 200, _}, _Headers, RespBody}} -> list_to_binary(RespBody);
+        {ok, {{_Version, Code, _}, _Headers, _}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
+    end.
+
+olap_get(Path) ->
+    inets:start(),
+    Base = get_base_url(),
+    case httpc:request(get, {Base ++ Path, []}, [], []) of
+        {ok, {{_Version, 200, _}, _Headers, Body}} -> list_to_binary(Body);
+        {ok, {{_Version, Code, _}, _Headers, _}} -> list_to_binary("Error: " ++ integer_to_list(Code));
+        {error, _} -> <<"Error connecting to server">>
+    end.
+
+olap_query(QueryBin) ->
+    olap_post("/api/olap/query", binary_to_list(QueryBin)).
+
+olap_tables() ->
+    olap_get("/api/olap/tables").
+
+olap_stats() ->
+    olap_get("/api/olap/stats").
+
+olap_ai_tune(QueryBin) ->
+    olap_post("/api/olap/ai_tune", binary_to_list(QueryBin)).
+
+olap_ai_analyze() ->
+    olap_get("/api/olap/ai_analyze").
 
 get_argv() ->
     Args = init:get_plain_arguments(),

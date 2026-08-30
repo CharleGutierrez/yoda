@@ -101,6 +101,24 @@ pub fn cli_elastic_ai_tune_test() {
   should.be_true(valid)
 }
 
+pub fn cli_olap_query_test() {
+  let res = cli.olap_query("SELECT region, COUNT(*) FROM sensor_telemetry GROUP BY region")
+  let valid = string.contains(res, "data") || string.contains(res, "Error")
+  should.be_true(valid)
+}
+
+pub fn cli_olap_tables_test() {
+  let res = cli.olap_tables()
+  let valid = string.contains(res, "sensor_telemetry") || string.contains(res, "Error")
+  should.be_true(valid)
+}
+
+pub fn cli_olap_ai_tune_test() {
+  let res = cli.olap_ai_tune("SELECT * FROM sensor_telemetry")
+  let valid = string.contains(res, "clustering") || string.contains(res, "Error")
+  should.be_true(valid)
+}
+
 pub fn cli_get_argv_test() {
   let args = cli.get_argv()
   // Just ensure it returns a list

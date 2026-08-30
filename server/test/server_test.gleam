@@ -251,6 +251,59 @@ pub fn elasticsearch_ai_tuner_and_stats_test() {
   should.be_true(string.contains(stats, "yoda-elasticsearch") && string.contains(stats, "total_documents"))
 }
 
+pub fn olap_vectorized_query_and_aggs_test() {
+  server.init_db_manager()
+
+  // 1. Vectorized Filter and Projection
+  let q1 = "SELECT device_id, temperature, region FROM sensor_telemetry WHERE temperature > 45.0 LIMIT 10;"
+  let res1 = server.olap_query("sensor_telemetry", q1)
+  should.be_true(string.contains(res1, "sensor_telemetry") && string.contains(res1, "data"))
+
+  // 2. Vectorized Group By Aggregations
+  let q2 = "SELECT region, COUNT(*) AS total, AVG(temperature) AS avg_temp, MAX(pressure) AS max_press FROM sensor_telemetry GROUP BY region;"
+  let res2 = server.olap_query("sensor_telemetry", q2)
+  should.be_true(string.contains(res2, "avg_temp") && string.contains(res2, "us-east") && string.contains(res2, "total"))
+
+  // 3. Vectorized Having Filter
+  let q3 = "SELECT region, AVG(temperature) AS avg_temp FROM sensor_telemetry GROUP BY region HAVING AVG(temperature) > 20.0;"
+  let res3 = server.olap_query("sensor_telemetry", q3)
+  should.be_true(string.contains(res3, "avg_temp"))
+}
+
+pub fn olap_financial_trades_grouping_test() {
+  server.init_db_manager()
+
+  // 1. Financial Trades Grouping by Symbol
+  let q1 = "SELECT symbol, COUNT(*) AS trades, SUM(volume) AS total_vol, AVG(price) AS avg_price FROM financial_trades GROUP BY symbol;"
+  let res1 = server.olap_query("financial_trades", q1)
+  should.be_true(string.contains(res1, "BTC-USD") && string.contains(res1, "trades") && string.contains(res1, "total_vol"))
+
+  // 2. Generic execute olap
+  let q2 = "SELECT symbol, AVG(price) AS p FROM financial_trades GROUP BY symbol;"
+  let res2 = server.olap_execute(q2)
+  should.be_true(string.contains(res2, "data") && string.contains(res2, "p"))
+}
+
+pub fn olap_ai_tuner_and_stats_test() {
+  server.init_db_manager()
+
+  // 1. AI Tuner on SELECT * anti-pattern & clustering recommendation
+  let ai_tune = server.olap_ai_tune("SELECT * FROM sensor_telemetry WHERE region = 'us-east' AND timestamp > 1720000000 GROUP BY region;", "no_key")
+  should.be_true(string.contains(ai_tune, "CRITICAL") && string.contains(ai_tune, "ORDER BY") && string.contains(ai_tune, "autonomous_olap_ai_optimized"))
+
+  // 2. AI Warehouse Analysis
+  let ai_analysis = server.olap_ai_analyze_warehouse()
+  should.be_true(string.contains(ai_analysis, "SIMD") && string.contains(ai_analysis, "warehouse_ai_verified"))
+
+  // 3. Tables catalog
+  let tables = server.olap_get_tables()
+  should.be_true(string.contains(tables, "sensor_telemetry") && string.contains(tables, "financial_trades"))
+
+  // 4. Stats telemetry
+  let stats = server.olap_get_stats()
+  should.be_true(string.contains(stats, "vector_simd_width") && string.contains(stats, "total_columnar_cells"))
+}
+
 fn list_has_item(items: List(String), target: String) -> Bool {
   case items {
     [] -> False

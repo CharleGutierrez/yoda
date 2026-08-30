@@ -163,6 +163,21 @@ pub fn elastic_ai_tune(query: String) -> String
 @external(erlang, "cli_ffi", "elastic_ai_analyze")
 pub fn elastic_ai_analyze(index: String) -> String
 
+@external(erlang, "cli_ffi", "olap_query")
+pub fn olap_query(query: String) -> String
+
+@external(erlang, "cli_ffi", "olap_tables")
+pub fn olap_tables() -> String
+
+@external(erlang, "cli_ffi", "olap_stats")
+pub fn olap_stats() -> String
+
+@external(erlang, "cli_ffi", "olap_ai_tune")
+pub fn olap_ai_tune(query: String) -> String
+
+@external(erlang, "cli_ffi", "olap_ai_analyze")
+pub fn olap_ai_analyze() -> String
+
 @external(erlang, "cli_ffi", "get_argv")
 pub fn get_argv() -> List(String)
 
@@ -447,6 +462,55 @@ pub fn main() {
             io.println(elastic_ai_analyze(index))
           })
         },
+      ),
+    )
+    |> glint.add(
+      at: ["olap", "query"],
+      do: glint.command_help(
+        "Execute vectorized SQL OLAP analytics: yoda olap query 'SELECT region, AVG(temperature) FROM sensor_telemetry GROUP BY region'",
+        fn() {
+          glint.command(fn(_named, args, _flags) {
+            case args {
+              [query, ..] -> io.println(olap_query(query))
+              _ -> io.println("Usage: yoda olap query '<sql_query>'")
+            }
+          })
+        },
+      ),
+    )
+    |> glint.add(
+      at: ["olap", "tables"],
+      do: glint.command_help(
+        "List all columnar OLAP tables and row counts",
+        fn() { glint.command(fn(_, _, _) { io.println(olap_tables()) }) },
+      ),
+    )
+    |> glint.add(
+      at: ["olap", "stats"],
+      do: glint.command_help(
+        "Show Snowflake/ClickHouse columnar engine telemetry (scanned rows, bytes, aggregations)",
+        fn() { glint.command(fn(_, _, _) { io.println(olap_stats()) }) },
+      ),
+    )
+    |> glint.add(
+      at: ["olap", "ai-tune"],
+      do: glint.command_help(
+        "Run Autonomous AI OLAP Query & Clustering Key Optimizer: yoda olap ai-tune '<sql_query>'",
+        fn() {
+          glint.command(fn(_named, args, _flags) {
+            case args {
+              [query, ..] -> io.println(olap_ai_tune(query))
+              _ -> io.println("Usage: yoda olap ai-tune '<sql_query>'")
+            }
+          })
+        },
+      ),
+    )
+    |> glint.add(
+      at: ["olap", "ai-analyze"],
+      do: glint.command_help(
+        "Run Autonomous AI Warehouse Micro-Partition & Granule Health analysis",
+        fn() { glint.command(fn(_, _, _) { io.println(olap_ai_analyze()) }) },
       ),
     )
     |> glint.add(
